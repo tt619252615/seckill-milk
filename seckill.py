@@ -45,34 +45,36 @@ class Seckiller():
                 self._url,
                 headers=self._headers,
                 data=json.dumps(self._data),
-            )
-            logger.debug(f"Response: {response.text["msg"]}")
+            ) 
+            logger.debug(f"Response: {response.text.get('msg', 'No message')}")
         except requests.exceptions.RequestException as e:
             logger.error(f"Request failed: {e}")
+    
     def starte_seckill(self,started_time:int) -> None:
-        pass
+        while Seckiller.print_remaining_time:
+            self.post_seckill_url
+        # pass
 
 
 
     @staticmethod
-    def get_network_time() -> Optional[int]:
-        try:
-            response = requests.get(NETWORK_TIME_URL)
-            return response.json()["data"]["t"] / 1000.0
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Request failed: {e}")
-            return None
+    def get_network_time() -> Optional[float]:  
+        try:  
+            response = requests.get(NETWORK_TIME_URL)  
+            return response.json()["data"]["t"] / 1000.0  
+        except requests.exceptions.RequestException as e:  
+            logger.error(f"Request failed: {e}")  
+            return None 
     @staticmethod
-    def print_remaining_time()-> None:
-        network_time = Seckiller.get_network_time()
-        if network_time is None:
-            return
-        remaining_time = network_time - Seckiller.start_time
-        logger.info(f"Remaining time: {remaining_time}")
-        if remaining_time < 0:
-            logger.error("Time is up!")
-            return
-        else:
-            logger.info("Time is up!")
-            return
+    def print_remaining_time(cls, instance: 'Seckiller') -> bool:  
+        network_time = cls.get_network_time()  
+        if network_time is None:  
+            return False  
+        remaining_time = network_time - instance.start_time  
+        if remaining_time < 0:  
+            logger.error("Time is up!")  
+            return False  
+        else:  
+            logger.info(f"Remaining time: {remaining_time}")  
+            return True  
    
