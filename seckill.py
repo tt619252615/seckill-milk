@@ -13,7 +13,7 @@ NETWORK_TIME_URL = "http://api.m.taobao.com/rest/api3.do?api=mtop.common.getTime
 BASE_URL = (
     "https://h5.gumingnc.com/newton-buyer/newton/buyer/ump/milk/tea/activity/fcfs"
 )
-PROXY_URL = "http://api.dmdaili.com/dmgetip.asp?apikey=b19914fe&pwd=52f202acb3ebba533c80b70022827394&getnum=5&httptype=1&geshi=2&fenge=1&fengefu=&operate=all"  # 替换为实际的代理IP获取API
+PROXY_URL = ""  # 替换为实际的代理IP获取API
 DEFAULT_HEADERS: Dict[str, str] = {
     "host": "h5.gumingnc.com",
     "content-length": "109",
