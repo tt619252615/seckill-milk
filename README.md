@@ -1,4 +1,4 @@
-# seckill-milk
+# seckill-milk 小程序秒杀
 小程序秒杀
 seckill milk
 wx小程序自行抓包。
