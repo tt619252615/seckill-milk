@@ -7,11 +7,13 @@ import json
 import yaml
 import multiprocessing
 from loguru import logger
+import random
 
 NETWORK_TIME_URL = "http://api.m.taobao.com/rest/api3.do?api=mtop.common.getTimestamp"
 BASE_URL = (
     "https://h5.gumingnc.com/newton-buyer/newton/buyer/ump/milk/tea/activity/fcfs"
 )
+PROXY_URL = "http://api.dmdaili.com/dmgetip.asp?apikey=b19914fe&pwd=52f202acb3ebba533c80b70022827394&getnum=5&httptype=1&geshi=2&fenge=1&fengefu=&operate=all"  # 替换为实际的代理IP获取API
 DEFAULT_HEADERS: Dict[str, str] = {
     "host": "h5.gumingnc.com",
     "content-length": "109",
@@ -48,7 +50,7 @@ class Seckkiller:
         thread_count: int = 1,
     ):
         self.cookie_id: str = cookie_id
-        self._headers: Dict[str, str] = {**DEFAULT_HEADERS, "cookie": cookie_id}
+        self._headers: Dict[str, str] = {**DEFAULT_HEADERS, "Cookie": cookie_id}
         self._data: Dict[str, int] = BASE_DATA
         self.max_attempts: int = max_attempts
         self.attempts: int = 0
@@ -56,13 +58,25 @@ class Seckkiller:
         self.stop_flag: threading.Event = threading.Event()
         self.thread_count: int = thread_count
         self.start_time: datetime.time = start_time
+        self.proxy_list: List[Dict[str, str]] = []
 
     def post_seckill_url(self) -> None:
         try:
+            proxy = random.choice(self.proxy_list) if self.proxy_list else None
+            proxies = (
+                {
+                    "http": f"http://{proxy['ip']}:{proxy['port']}",
+                }
+                if proxy
+                else None
+            )
+            logger.debug(f"[{self.account_name}]Using proxy: {proxies}")
             response = requests.post(
                 BASE_URL,
                 headers=self._headers,
                 data=json.dumps(self._data),
+                proxies=proxies,
+                timeout=5,
             )
             response_data = response.json()
             logger.debug(
@@ -93,12 +107,33 @@ class Seckkiller:
             logger.error(f"Request failed: {e}")
             return datetime.now().time()
 
+    @staticmethod
+    def get_proxy_ips() -> List[Dict[str, str]]:
+        try:
+            response = requests.get(PROXY_URL)
+            data = response.json()
+            if data["success"] and data["code"] == 0:
+                return data["data"]
+            else:
+                logger.error(f"Failed to get proxy IP9s: {data['msg']}")
+                return []
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to get proxy IPs: {e}")
+            return []
+
     def wait_for_start_time(self) -> None:
         while True:
             current_time = self.get_network_time()
             if current_time >= self.start_time:
                 logger.info(f"[{self.account_name}] Starting seckill...")
                 break
+            # 在等待期间获取代理IP
+            if not self.proxy_list:
+                self.proxy_list = self.get_proxy_ips()
+                if self.proxy_list:
+                    logger.info(
+                        f"[{self.account_name}] Got {len(self.proxy_list)} proxy IPs"
+                    )
             time.sleep(0.01)  # 小的睡眠时间以避免过度消耗CPU
 
     def run(self) -> None:
@@ -169,5 +204,5 @@ def main(start_time: str, config_file: str = "cookie.yaml") -> None:
 
 
 if __name__ == "__main__":
-    start_time = "23:14:59.850"  # 设置开始时间
+    start_time = "14:54:59.850"  # 设置开始时间
     main(start_time)
