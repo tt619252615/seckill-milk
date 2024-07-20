@@ -1,4 +1,5 @@
 # seckill-milk
+小程序秒杀
 seckill milk
 wx小程序自行抓包。
 小程序最近的活动guming奶茶，抓包获取cookie和authorization，然后填入代码即可。
