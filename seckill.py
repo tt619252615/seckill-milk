@@ -102,19 +102,10 @@ class Seckkiller:
             if self.use_encryption:
                 self.encrypt_data(current_time)
             logger.debug(f"[{self.account_name}]Data: {self._data}")
-            data = {
-                "marketingId": "1816854086004391938",
-                "round": "14:00",
-                "secretword": "1",
-                "sign": "7c2771bc64a99ab70df080bb14faed4b",
-                "s": 2,
-                "stamp": 1722319921538,
-            }
             response = requests.post(
                 BASE_URL,
                 headers=self._headers,
-                # data=json.dumps(self._data),
-                data=json.dumps(data),
+                data=json.dumps(self._data),
                 proxies=proxies,
                 timeout=5,
             )
