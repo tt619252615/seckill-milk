@@ -11,9 +11,7 @@ import random
 import hashlib
 
 NETWORK_TIME_URL = "http://api.m.taobao.com/rest/api3.do?api=mtop.common.getTimestamp"
-BASE_URL = (
-    "https://h5.gumingnc.com/newton-buyer/newton/buyer/ump/milk/tea/activity/fcfs"
-)
+BASE_URL = "https://mxsa.mxbc.net/api/v1/h5/marketing/secretword/confirm"
 PROXY_URL = ""  # 替换为实际的代理IP获取API
 DEFAULT_HEADERS: Dict[str, str] = {
     "host": "mxsa.mxbc.net",
@@ -46,13 +44,13 @@ class Seckkiller:
         cookie_id: str,
         start_time: datetime.time,
         account_name: Optional[str] = None,
-        max_attempts: int = 5,
+        max_attempts: int = 1,
         thread_count: int = 1,
         use_encryption: bool = False,
         encryption_params: Optional[Dict[str, str]] = None,
     ):
         self.cookie_id: str = cookie_id
-        self._headers: Dict[str, str] = {**DEFAULT_HEADERS, "access-token": cookie_id}
+        self._headers: Dict[str, str] = {**DEFAULT_HEADERS, "Access-Token": cookie_id}
         self._data: Dict[str, int] = BASE_DATA
         self.max_attempts: int = max_attempts
         self.attempts: int = 0
@@ -71,9 +69,11 @@ class Seckkiller:
         marketingId = self.encryption_params.get("marketingId", "")
         round = self.encryption_params.get("round", "")
         secretword = self.encryption_params.get("secretword", "")
+        timestamp = int(current_time.timestamp() * 1000)
 
-        round_time = current_time.strftime("%H:%M")
-        param = f"marketingId={marketingId}&round={round}&s=2&secretword={secretword}&{round_time}c274bac6493544b89d9c4f9d8d542b84"
+        logger.debug(f"[{self.account_name}] Round time: {timestamp}")
+        param = f"marketingId={marketingId}&round={round}&s=2&secretword={secretword}&stamp={timestamp}c274bac6493544b89d9c4f9d8d542b84"
+        logger.debug(f"[{self.account_name}] Encryption param: {param}")
         m = hashlib.md5(param.encode("utf8"))
         sign = m.hexdigest()
 
@@ -83,7 +83,7 @@ class Seckkiller:
                 "round": round,  #   # 毫秒级时间戳
                 "sign": sign,
                 "secretword": secretword,
-                "stamp": int(current_time.timestamp() * 1000),
+                "stamp": timestamp,
             }
         )
 
@@ -101,14 +101,13 @@ class Seckkiller:
             current_time = datetime.now()
             if self.use_encryption:
                 self.encrypt_data(current_time)
-            logger.debug(f"[{self.account_name}]Data: {self._data}")
             response = requests.post(
                 BASE_URL,
                 headers=self._headers,
                 data=json.dumps(self._data),
                 proxies=proxies,
-                timeout=5,
             )
+            print(response.text)
             response_data = response.json()
             logger.debug(f"[{self.account_name}]Response: {response_data}")
             logger.debug(
@@ -252,5 +251,5 @@ def main(start_time: str, config_file: str = "cookie.yaml") -> None:
 
 
 if __name__ == "__main__":
-    start_time = "15:00:00.000"  # 设置开始时间
+    start_time = "20:53:00.000"  # 设置开始时间
     main(start_time)
