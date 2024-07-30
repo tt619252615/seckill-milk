@@ -1,3 +1,8 @@
-"Cookies":
-  "remarkname1": "your cookie"
-  "remarkname2": "your cookie"
+Cookies:
+  account1: "cookie_value_1"
+  account2: "cookie_value_2"
+
+use_encryption: true
+marketingId: "1816854086004391938"
+secretword: "茉莉奶绿销量突破500万杯"
+round: "15:00"
