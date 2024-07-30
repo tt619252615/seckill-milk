@@ -8,49 +8,49 @@ import yaml
 import multiprocessing
 from loguru import logger
 import random
+import hashlib
 
 NETWORK_TIME_URL = "http://api.m.taobao.com/rest/api3.do?api=mtop.common.getTimestamp"
-BASE_URL = (
-    "https://h5.gumingnc.com/newton-buyer/newton/buyer/ump/milk/tea/activity/fcfs"
-)
-PROXY_URL = "http://api.dmdaili.com/dmgetip.asp?apikey=b19914fe&pwd=52f202acb3ebba533c80b70022827394&getnum=5&httptype=1&geshi=2&fenge=1&fengefu=&operate=all"  # 替换为实际的代理IP获取API
+BASE_URL = "https://mxsa.mxbc.net/api/v1/h5/marketing/secretword/confirm"
+PROXY_URL = ""  # 替换为实际的代理IP获取API
 DEFAULT_HEADERS: Dict[str, str] = {
-    "host": "h5.gumingnc.com",
-    "content-length": "109",
-    "t-token": "tWPHd1721229807WtnhbUCAXp3",
-    "cache-control": "max-age=0",
-    "authorization": "",
-    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36 MicroMessenger/7.0.20.1781(0x6700143B) NetType/WIFI MiniProgramEnv/Windows WindowsWechat/WMPF WindowsWechat(0x63090b11)XWEB/9185",
-    "content-type": "application/json",
-    "accept": "*/*",
-    "origin": "https://h5.gumingnc.com",
-    "sec-fetch-site": "same-origin",
+    "host": "mxsa.mxbc.net",
+    "content-length": "140",
+    "accept": "application/json, text/plain, */*",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36 MicroMessenger/7.0.20.1781(0x6700143B) NetType/WIFI MiniProgramEnv/Windows WindowsWechat/WMPF WindowsWechat(0x63090a13)XWEB/9193",
+    "content-type": "application/json;charset=UTF-8",
+    "origin": "https://mxsa-h5.mxbc.net",
+    "sec-fetch-site": "same-site",
     "sec-fetch-mode": "cors",
     "sec-fetch-dest": "empty",
-    "referer": "https://h5.gumingnc.com/",
+    "referer": "https://mxsa-h5.mxbc.net/",
     "accept-encoding": "gzip, deflate, br",
     "accept-language": "zh-CN,zh;q=0.9",
 }
 BASE_DATA: Dict[str, int] = {
-    "channelCode": 20,
-    "activityId": 14,
-    "brandId": 1,
-    "keyWordAnswer": "乌龙青",
-    "consumptionInventoryId": 332319846,
+    "marketingId": "1816854086004391938",
+    "round": "13:00",
+    "secretword": "1",
+    "sign": "f185a655dba3ce0d570f3fe83ee1b4b7",
+    "s": 2,
+    "stamp": 1722319027399,
 }
 
 
 class Seckkiller:
+
     def __init__(
         self,
         cookie_id: str,
         start_time: datetime.time,
         account_name: Optional[str] = None,
-        max_attempts: int = 10,
+        max_attempts: int = 5,
         thread_count: int = 1,
+        use_encryption: bool = False,
+        encryption_params: Optional[Dict[str, str]] = None,
     ):
         self.cookie_id: str = cookie_id
-        self._headers: Dict[str, str] = {**DEFAULT_HEADERS, "Cookie": cookie_id}
+        self._headers: Dict[str, str] = {**DEFAULT_HEADERS, "access-token": cookie_id}
         self._data: Dict[str, int] = BASE_DATA
         self.max_attempts: int = max_attempts
         self.attempts: int = 0
@@ -59,6 +59,31 @@ class Seckkiller:
         self.thread_count: int = thread_count
         self.start_time: datetime.time = start_time
         self.proxy_list: List[Dict[str, str]] = []
+        self.use_encryption: bool = use_encryption
+        self.encryption_params: Optional[Dict[str, str]] = encryption_params
+
+    def encrypt_data(self, current_time: datetime) -> None:
+        if not self.use_encryption or not self.encryption_params:
+            return
+
+        marketingId = self.encryption_params.get("marketingId", "")
+        round = self.encryption_params.get("round", "")
+        secretword = self.encryption_params.get("secretword", "")
+
+        round_time = current_time.strftime("%H:%M")
+        param = f"marketingId={marketingId}&round={round}&s=2&secretword={secretword}&{round_time}c274bac6493544b89d9c4f9d8d542b84"
+        m = hashlib.md5(param.encode("utf8"))
+        sign = m.hexdigest()
+
+        self._data.update(
+            {
+                "marketingId": marketingId,
+                "round": round,  #   # 毫秒级时间戳
+                "sign": sign,
+                "secretword": secretword,
+                "stamp": int(current_time.timestamp() * 1000),
+            }
+        )
 
     def post_seckill_url(self) -> None:
         try:
@@ -71,14 +96,28 @@ class Seckkiller:
                 else None
             )
             logger.debug(f"[{self.account_name}]Using proxy: {proxies}")
+            current_time = datetime.now()
+            if self.use_encryption:
+                self.encrypt_data(current_time)
+            logger.debug(f"[{self.account_name}]Data: {self._data}")
+            data = {
+                "marketingId": "1816854086004391938",
+                "round": "14:00",
+                "secretword": "1",
+                "sign": "7c2771bc64a99ab70df080bb14faed4b",
+                "s": 2,
+                "stamp": 1722319921538,
+            }
             response = requests.post(
                 BASE_URL,
                 headers=self._headers,
-                data=json.dumps(self._data),
+                # data=json.dumps(self._data),
+                data=json.dumps(data),
                 proxies=proxies,
                 timeout=5,
             )
             response_data = response.json()
+            logger.debug(f"[{self.account_name}]Response: {response_data}")
             logger.debug(
                 f"[{self.account_name}]Response: {response_data.get('msg', 'No message')}"
             )
@@ -156,14 +195,30 @@ class SeckillManager:
         self.start_time: datetime.time = datetime.strptime(
             start_time, "%H:%M:%S.%f"
         ).time()
-        self.account_cookie_map: Dict[str, str] = self.load_config()
+        self.config: Dict = self.load_config()
+        self.account_cookie_map: Dict[str, str] = self.config.get("Cookies", {})
 
-    def load_config(self) -> Dict[str, str]:
+    def load_config(self) -> Dict:
         with open(self.config_file, "r", encoding="utf-8") as f:
-            return yaml.safe_load(f)["Cookies"]
+            return yaml.safe_load(f)
 
     def worker(self, account_name: str, cookie_id: str) -> None:
-        seckkiller = Seckkiller(cookie_id, self.start_time, account_name)
+        use_encryption = self.config.get("use_encryption", False)
+        encryption_params = None
+        if use_encryption:
+            encryption_params = {
+                "marketingId": self.config.get("marketingId", ""),
+                "round": self.config.get("round", ""),  # 使用cookie作为token
+                "secretword": self.config.get("secretword", ""),
+            }
+
+        seckkiller = Seckkiller(
+            cookie_id,
+            self.start_time,
+            account_name,
+            use_encryption=use_encryption,
+            encryption_params=encryption_params,
+        )
         seckkiller.run()
 
     def print_remaining_time(self) -> None:
@@ -204,5 +259,5 @@ def main(start_time: str, config_file: str = "cookie.yaml") -> None:
 
 
 if __name__ == "__main__":
-    start_time = "14:54:59.850"  # 设置开始时间
+    start_time = "15:00:00.000"  # 设置开始时间
     main(start_time)
