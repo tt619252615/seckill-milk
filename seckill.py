@@ -71,7 +71,6 @@ class Seckkiller:
         secretword = self.encryption_params.get("secretword", "")
         timestamp = int(current_time.timestamp() * 1000)
 
-        logger.debug(f"[{self.account_name}] Round time: {timestamp}")
         param = f"marketingId={marketingId}&round={round}&s=2&secretword={secretword}&stamp={timestamp}c274bac6493544b89d9c4f9d8d542b84"
         logger.debug(f"[{self.account_name}] Encryption param: {param}")
         m = hashlib.md5(param.encode("utf8"))
