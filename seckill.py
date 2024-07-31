@@ -70,9 +70,7 @@ class Seckkiller:
         round = self.encryption_params.get("round", "")
         secretword = self.encryption_params.get("secretword", "")
         timestamp = int(current_time.timestamp() * 1000)
-
         param = f"marketingId={marketingId}&round={round}&s=2&secretword={secretword}&stamp={timestamp}c274bac6493544b89d9c4f9d8d542b84"
-        logger.debug(f"[{self.account_name}] Encryption param: {param}")
         m = hashlib.md5(param.encode("utf8"))
         sign = m.hexdigest()
 
@@ -106,7 +104,6 @@ class Seckkiller:
                 data=json.dumps(self._data),
                 proxies=proxies,
             )
-            print(response.text)
             response_data = response.json()
             logger.debug(f"[{self.account_name}]Response: {response_data}")
             logger.debug(
@@ -152,19 +149,33 @@ class Seckkiller:
             return []
 
     def wait_for_start_time(self) -> None:
+        proxy_fetch_interval = 5  # 设置获取代理 IP 的间隔时间（秒）
+        last_proxy_fetch_time = 0
+
         while True:
             current_time = self.get_network_time()
             if current_time >= self.start_time:
                 logger.info(f"[{self.account_name}] Starting seckill...")
                 break
-            # 在等待期间获取代理IP
-            if not self.proxy_list:
+
+            # 检查是否需要获取代理 IP
+            current_timestamp = time.time()
+            if (
+                not self.proxy_list
+                and current_timestamp - last_proxy_fetch_time > proxy_fetch_interval
+            ):
                 self.proxy_list = self.get_proxy_ips()
+                last_proxy_fetch_time = current_timestamp
                 if self.proxy_list:
                     logger.info(
                         f"[{self.account_name}] Got {len(self.proxy_list)} proxy IPs"
                     )
-            time.sleep(0.01)  # 小的睡眠时间以避免过度消耗CPU
+                else:
+                    logger.info(
+                        f"[{self.account_name}] No proxy IPs available, will use local IP"
+                    )
+
+            time.sleep(0.01)  # 小的睡眠时间以避免过度消耗 CPU
 
     def run(self) -> None:
         logger.info(f"[{self.account_name}] Waiting for start time: {self.start_time}")
@@ -199,7 +210,7 @@ class SeckillManager:
         if use_encryption:
             encryption_params = {
                 "marketingId": self.config.get("marketingId", ""),
-                "round": self.config.get("round", ""),  # 使用cookie作为token
+                "round": self.config.get("round", ""),  # 获取round的值
                 "secretword": self.config.get("secretword", ""),
             }
 
