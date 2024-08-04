@@ -100,39 +100,67 @@ class Seckkiller:
         return encrypted_str, mixue_data
 
     def post_seckill_url(self) -> None:
-        try:
+        while self.attempts < self.max_attempts and not self.stop_flag.is_set():
             proxy = random.choice(self.proxy_list) if self.proxy_list else None
             proxies = (
-                {
-                    "http": f"http://{proxy['ip']}:{proxy['port']}",
-                }
-                if proxy
-                else None
+                f"http://{proxy['ip']}:{proxy['port']}"
+                if proxy and self.use_encryption
+                else (
+                    {
+                        "http": f"http://{proxy['ip']}:{proxy['port']}",
+                        "https": f"http://{proxy['ip']}:{proxy['port']}",
+                    }
+                    if proxy
+                    else None
+                )
             )
-            logger.debug(f"[{self.account_name}]Using proxy: {proxies}")
-            current_time = datetime.now()
-            if self.use_encryption:
-                type_1286, self._data = self.encrypt_data(current_time)
-                BASE_URL = f"https://mxsa.mxbc.net/api/v1/h5/marketing/secretword/confirm?type__1286={type_1286}"
-            response = requests.post(
-                BASE_URL,
-                headers=self._headers,
-                data=self._data,
-                impersonate="chrome100",
+
+            logger.debug(f"[{self.account_name}] Using proxy: {proxies}")
+
+            try:
+                if self.use_encryption:
+                    type_1286, self._data = self.encrypt_data(datetime.now())
+                    BASE_URL = f"https://mxsa.mxbc.net/api/v1/h5/marketing/secretword/confirm?type__1286={type_1286}"
+                response = requests.post(
+                    BASE_URL,
+                    headers=self._headers,
+                    data=self._data,
+                    impersonate="chrome100",
+                    proxy=proxies,
+                    timeout=1,
+                )
+
+                try:
+                    response_data = response.json()
+                except json.JSONDecodeError as json_err:
+                    logger.error(f"Failed to decode JSON response: {json_err}")
+                    response_data = None
+
+                if response_data:
+                    logger.debug(f"[{self.account_name}] Response: {response_data}")
+                    if "success" in response_data.get("msg", "").lower():
+                        logger.info(
+                            f"[{self.account_name}] Successfully completed the request."
+                        )
+                        self.stop_flag.set()
+                        break
+                    else:
+                        logger.warning(
+                            f"[{self.account_name}] Unexpected response: {response_data}"
+                        )
+
+            except Exception as e:
+                logger.error(f"Request failed: {e}")
+
+            self.attempts += 1
+            logger.info(
+                f"Attempt {self.attempts}/{self.max_attempts} failed. Retrying..."
             )
-            # response_data = response.json()
-            # print(response.text)
-            response_data = json.loads(response.text)
-            logger.debug(f"[{self.account_name}]Response: {response_data}")
-            logger.debug(
-                f"[{self.account_name}]Response: {response_data.get('msg', 'No message')}"
+
+        if not self.stop_flag.is_set():
+            logger.error(
+                f"Reached maximum attempts ({self.max_attempts}). Stopping requests."
             )
-            if "success" in response_data.get("msg", "").lower():
-                self.stop_flag.set()
-        except RuntimeError as e:
-            logger.error(f"Request failed: {e}")
-        self.attempts += 1
-        if self.attempts >= self.max_attempts:
             self.stop_flag.set()
 
     def start_seckill(self) -> None:
@@ -144,34 +172,41 @@ class Seckkiller:
     @staticmethod
     def get_network_time() -> datetime.time:
         try:
-            response = requests.get(NETWORK_TIME_URL)
+            response = requests.get(
+                NETWORK_TIME_URL,
+                impersonate="chrome100",
+            )
             res = response.json()
             now_time = int(res["data"]["t"]) / 1000.0
             return datetime.fromtimestamp(now_time).time()
-        except requests.exceptions.RequestException as e:
+        except requests.errors.RequestsError as e:
             logger.error(f"Request failed: {e}")
             return datetime.now().time()
 
     @staticmethod
     def get_proxy_ips() -> List[Dict[str, str]]:
         try:
-            response = requests.get(PROXY_URL)
+            response = requests.get(
+                PROXY_URL,
+                impersonate="chrome100",
+            )
             data = response.json()
             if data["success"] and data["code"] == 0:
                 return data["data"]
             else:
                 logger.error(f"Failed to get proxy IP9s: {data['msg']}")
                 return []
-        except requests.exceptions.RequestException as e:
+        except requests.errors.RequestsError as e:
             logger.error(f"Failed to get proxy IPs: {e}")
             return []
 
     def wait_for_start_time(self) -> None:
         proxy_fetch_interval = 5  # 设置获取代理 IP 的间隔时间（秒）
         last_proxy_fetch_time = 0
+        proxy_fetch_failed = False  # 新增标志，用于记录代理获取是否失败
 
         while True:
-            current_time = self.get_network_time()
+            current_time = Seckkiller.get_network_time()
             if current_time >= self.start_time:
                 logger.info(f"[{self.account_name}] Starting seckill...")
                 break
@@ -180,9 +215,10 @@ class Seckkiller:
             current_timestamp = time.time()
             if (
                 not self.proxy_list
+                and not proxy_fetch_failed  # 只有在之前没有失败时才尝试获取
                 and current_timestamp - last_proxy_fetch_time > proxy_fetch_interval
             ):
-                self.proxy_list = self.get_proxy_ips()
+                self.proxy_list = Seckkiller.get_proxy_ips()
                 last_proxy_fetch_time = current_timestamp
                 if self.proxy_list:
                     logger.info(
@@ -192,8 +228,9 @@ class Seckkiller:
                     logger.info(
                         f"[{self.account_name}] No proxy IPs available, will use local IP"
                     )
+                    proxy_fetch_failed = True  # 标记获取失败，后续不再尝试
 
-            time.sleep(0.01)  # 小的睡眠时间以避免过度消耗 CPU
+            time.sleep(0.01)
 
     def run(self) -> None:
         logger.info(f"[{self.account_name}] Waiting for start time: {self.start_time}")
@@ -281,5 +318,5 @@ def main(start_time: str, config_file: str = "cookie.yaml") -> None:
 
 
 if __name__ == "__main__":
-    start_time = "18:53:00.000"  # 设置开始时间
+    start_time = "00:11:50.000"  # 设置开始时间
     main(start_time)
