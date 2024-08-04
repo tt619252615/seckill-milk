@@ -77,21 +77,27 @@ class Seckkiller:
         param = f"marketingId={marketingId}&round={round}&s=2&secretword={secretword}&stamp={timestamp}c274bac6493544b89d9c4f9d8d542b84"
         m = hashlib.md5(param.encode("utf8"))
         sign = m.hexdigest()
-
-        self._data.update(
+        mixue_data = {
+            "marketingId": "1816854086004391938",
+            "round": "13:00",
+            "secretword": "1",
+            "sign": "f185a655dba3ce0d570f3fe83ee1b4b7",
+            "s": 2,
+            "stamp": 1722319027399,
+        }
+        mixue_data.update(
             {
                 "marketingId": marketingId,
-                "round": round,  #   # 毫秒级时间戳
-                "sign": sign,
+                "round": round,
                 "secretword": secretword,
+                "sign": sign,
                 "stamp": timestamp,
             }
         )
+        mixue_data = json.dumps(mixue_data, separators=(",", ":"), ensure_ascii=False)
         encrypted_str = f'https://mxsa.mxbc.net/api/v1/h5/marketing/secretword/confirm{{"marketingId":"{marketingId}","round":"{round}","secretword":"{secretword}","sign":"{sign}","s":2,"stamp":{timestamp}}}'
-        print(encrypted_str)
         encrypted_str = self.encryption_js.call("get_sig", encrypted_str)
-        logger.debug(f"[{self.account_name}] Encrypted data: {encrypted_str}")
-        return encrypted_str
+        return encrypted_str, mixue_data
 
     def post_seckill_url(self) -> None:
         try:
@@ -106,13 +112,8 @@ class Seckkiller:
             logger.debug(f"[{self.account_name}]Using proxy: {proxies}")
             current_time = datetime.now()
             if self.use_encryption:
-                type_1286 = self.encrypt_data(current_time)
+                type_1286, self._data = self.encrypt_data(current_time)
                 BASE_URL = f"https://mxsa.mxbc.net/api/v1/h5/marketing/secretword/confirm?type__1286={type_1286}"
-                self._data = json.dumps(
-                    self._data, separators=(",", ":"), ensure_ascii=False
-                )
-            logger.debug(f"[{self.account_name}] Data: {self._data}")
-            logger.debug(f"[{self.account_name}] BASE_URL: {BASE_URL}")
             response = requests.post(
                 BASE_URL,
                 headers=self._headers,
@@ -120,14 +121,15 @@ class Seckkiller:
                 impersonate="chrome100",
             )
             # response_data = response.json()
-            response_data = json.load(response.text)
+            # print(response.text)
+            response_data = json.loads(response.text)
             logger.debug(f"[{self.account_name}]Response: {response_data}")
             logger.debug(
                 f"[{self.account_name}]Response: {response_data.get('msg', 'No message')}"
             )
             if "success" in response_data.get("msg", "").lower():
                 self.stop_flag.set()
-        except TimeoutError as e:
+        except RuntimeError as e:
             logger.error(f"Request failed: {e}")
         self.attempts += 1
         if self.attempts >= self.max_attempts:
@@ -234,6 +236,8 @@ class SeckillManager:
             cookie_id,
             self.start_time,
             account_name,
+            max_attempts=self.config.get("max_attempts", ""),
+            thread_count=self.config.get("thread_count", ""),
             use_encryption=use_encryption,
             encryption_params=encryption_params,
         )

@@ -1,7 +1,7 @@
 Cookies:
-  account1: "cookie_value_1"
-  account2: "cookie_value_2"
-
+  account1: ""
+thread_count : 1
+max_attempts : 1
 use_encryption: true
 marketingId: "1816854086004391938"
 secretword: "茉莉奶绿销量突破2000万杯"
