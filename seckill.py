@@ -2,22 +2,23 @@ import threading
 import time
 from datetime import datetime, date
 from typing import Dict, Optional, List
-import requests
+from curl_cffi import requests
 import json
 import yaml
 import multiprocessing
 from loguru import logger
 import random
+import execjs
 import hashlib
 
 NETWORK_TIME_URL = "http://api.m.taobao.com/rest/api3.do?api=mtop.common.getTimestamp"
 BASE_URL = "https://mxsa.mxbc.net/api/v1/h5/marketing/secretword/confirm"
-PROXY_URL = ""  # 替换为实际的代理IP获取API
+PROXY_URL = "http://api.dmdaili.com/dmgetip.asp?apikey=b19914fe&pwd=52f202acb3ebba533c80b70022827394&getnum=20&httptype=1&geshi=2&fenge=1&fengefu=&operate=all"  # 替换为实际的代理IP获取API
 DEFAULT_HEADERS: Dict[str, str] = {
     "host": "mxsa.mxbc.net",
-    "content-length": "140",
+    "content-length": "173",
     "accept": "application/json, text/plain, */*",
-    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36 MicroMessenger/7.0.20.1781(0x6700143B) NetType/WIFI MiniProgramEnv/Windows WindowsWechat/WMPF WindowsWechat(0x63090a13)XWEB/9193",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36 MicroMessenger/7.0.20.1781(0x6700143B) NetType/WIFI MiniProgramEnv/Windows WindowsWechat/WMPF WindowsWechat(0x63090b19)XWEB/9193",
     "content-type": "application/json;charset=UTF-8",
     "origin": "https://mxsa-h5.mxbc.net",
     "sec-fetch-site": "same-site",
@@ -50,7 +51,7 @@ class Seckkiller:
         encryption_params: Optional[Dict[str, str]] = None,
     ):
         self.cookie_id: str = cookie_id
-        self._headers: Dict[str, str] = {**DEFAULT_HEADERS, "Access-Token": cookie_id}
+        self._headers: Dict[str, str] = {**DEFAULT_HEADERS, "access-token": cookie_id}
         self._data: Dict[str, int] = BASE_DATA
         self.max_attempts: int = max_attempts
         self.attempts: int = 0
@@ -61,6 +62,9 @@ class Seckkiller:
         self.proxy_list: List[Dict[str, str]] = []
         self.use_encryption: bool = use_encryption
         self.encryption_params: Optional[Dict[str, str]] = encryption_params
+        if self.use_encryption:
+            with open("./js/mixue.js", "r", encoding="utf-8") as js_file:
+                self.encryption_js = execjs.compile(js_file.read())
 
     def encrypt_data(self, current_time: datetime) -> None:
         if not self.use_encryption or not self.encryption_params:
@@ -70,10 +74,7 @@ class Seckkiller:
         round = self.encryption_params.get("round", "")
         secretword = self.encryption_params.get("secretword", "")
         timestamp = int(current_time.timestamp() * 1000)
-
-        logger.debug(f"[{self.account_name}] Round time: {timestamp}")
         param = f"marketingId={marketingId}&round={round}&s=2&secretword={secretword}&stamp={timestamp}c274bac6493544b89d9c4f9d8d542b84"
-        logger.debug(f"[{self.account_name}] Encryption param: {param}")
         m = hashlib.md5(param.encode("utf8"))
         sign = m.hexdigest()
 
@@ -86,6 +87,11 @@ class Seckkiller:
                 "stamp": timestamp,
             }
         )
+        encrypted_str = f'https://mxsa.mxbc.net/api/v1/h5/marketing/secretword/confirm{{"marketingId":"{marketingId}","round":"{round}","secretword":"{secretword}","sign":"{sign}","s":2,"stamp":{timestamp}}}'
+        print(encrypted_str)
+        encrypted_str = self.encryption_js.call("get_sig", encrypted_str)
+        logger.debug(f"[{self.account_name}] Encrypted data: {encrypted_str}")
+        return encrypted_str
 
     def post_seckill_url(self) -> None:
         try:
@@ -100,22 +106,28 @@ class Seckkiller:
             logger.debug(f"[{self.account_name}]Using proxy: {proxies}")
             current_time = datetime.now()
             if self.use_encryption:
-                self.encrypt_data(current_time)
+                type_1286 = self.encrypt_data(current_time)
+                BASE_URL = f"https://mxsa.mxbc.net/api/v1/h5/marketing/secretword/confirm?type__1286={type_1286}"
+                self._data = json.dumps(
+                    self._data, separators=(",", ":"), ensure_ascii=False
+                )
+            logger.debug(f"[{self.account_name}] Data: {self._data}")
+            logger.debug(f"[{self.account_name}] BASE_URL: {BASE_URL}")
             response = requests.post(
                 BASE_URL,
                 headers=self._headers,
-                data=json.dumps(self._data),
-                proxies=proxies,
+                data=self._data,
+                impersonate="chrome100",
             )
-            print(response.text)
-            response_data = response.json()
+            # response_data = response.json()
+            response_data = json.load(response.text)
             logger.debug(f"[{self.account_name}]Response: {response_data}")
             logger.debug(
                 f"[{self.account_name}]Response: {response_data.get('msg', 'No message')}"
             )
             if "success" in response_data.get("msg", "").lower():
                 self.stop_flag.set()
-        except requests.exceptions.RequestException as e:
+        except TimeoutError as e:
             logger.error(f"Request failed: {e}")
         self.attempts += 1
         if self.attempts >= self.max_attempts:
@@ -153,19 +165,33 @@ class Seckkiller:
             return []
 
     def wait_for_start_time(self) -> None:
+        proxy_fetch_interval = 5  # 设置获取代理 IP 的间隔时间（秒）
+        last_proxy_fetch_time = 0
+
         while True:
             current_time = self.get_network_time()
             if current_time >= self.start_time:
                 logger.info(f"[{self.account_name}] Starting seckill...")
                 break
-            # 在等待期间获取代理IP
-            if not self.proxy_list:
+
+            # 检查是否需要获取代理 IP
+            current_timestamp = time.time()
+            if (
+                not self.proxy_list
+                and current_timestamp - last_proxy_fetch_time > proxy_fetch_interval
+            ):
                 self.proxy_list = self.get_proxy_ips()
+                last_proxy_fetch_time = current_timestamp
                 if self.proxy_list:
                     logger.info(
                         f"[{self.account_name}] Got {len(self.proxy_list)} proxy IPs"
                     )
-            time.sleep(0.01)  # 小的睡眠时间以避免过度消耗CPU
+                else:
+                    logger.info(
+                        f"[{self.account_name}] No proxy IPs available, will use local IP"
+                    )
+
+            time.sleep(0.01)  # 小的睡眠时间以避免过度消耗 CPU
 
     def run(self) -> None:
         logger.info(f"[{self.account_name}] Waiting for start time: {self.start_time}")
@@ -200,7 +226,7 @@ class SeckillManager:
         if use_encryption:
             encryption_params = {
                 "marketingId": self.config.get("marketingId", ""),
-                "round": self.config.get("round", ""),  # 使用cookie作为token
+                "round": self.config.get("round", ""),  # 获取round的值
                 "secretword": self.config.get("secretword", ""),
             }
 
@@ -251,5 +277,5 @@ def main(start_time: str, config_file: str = "cookie.yaml") -> None:
 
 
 if __name__ == "__main__":
-    start_time = "20:53:00.000"  # 设置开始时间
+    start_time = "18:53:00.000"  # 设置开始时间
     main(start_time)
