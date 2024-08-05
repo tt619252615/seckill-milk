@@ -156,6 +156,10 @@ class Seckkiller:
             logger.info(
                 f"Attempt {self.attempts}/{self.max_attempts} failed. Retrying..."
             )
+
+        if not self.stop_flag.is_set():
+            logger.error(
+                f"Reached maximum attempts ({self.max_attempts}). Stopping requests."
             )
             self.stop_flag.set()
 
@@ -199,6 +203,8 @@ class Seckkiller:
     def wait_for_start_time(self) -> None:
         proxy_fetch_interval = 5  # 设置获取代理 IP 的间隔时间（秒）
         last_proxy_fetch_time = 0
+        proxy_fetch_failed = False  # 新增标志，用于记录代理获取是否失败
+
         while True:
             current_time = Seckkiller.get_network_time()
             if current_time >= self.start_time:
@@ -209,6 +215,10 @@ class Seckkiller:
             current_timestamp = time.time()
             if (
                 not self.proxy_list
+                and not proxy_fetch_failed  # 只有在之前没有失败时才尝试获取
+                and current_timestamp - last_proxy_fetch_time > proxy_fetch_interval
+            ):
+                self.proxy_list = Seckkiller.get_proxy_ips()
                 last_proxy_fetch_time = current_timestamp
                 if self.proxy_list:
                     logger.info(
@@ -218,6 +228,9 @@ class Seckkiller:
                     logger.info(
                         f"[{self.account_name}] No proxy IPs available, will use local IP"
                     )
+                    proxy_fetch_failed = True  # 标记获取失败，后续不再尝试
+
+            time.sleep(0.01)
 
     def run(self) -> None:
         logger.info(f"[{self.account_name}] Waiting for start time: {self.start_time}")
