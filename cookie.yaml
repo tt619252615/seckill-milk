@@ -1,8 +1,8 @@
 Cookies:
-  account1: "cookie_value_1"
-  account2: "cookie_value_2"
+  account1: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ3eF8xNDQ5NTE1NTE0ODA4MDgyNDM0IiwiaWF0IjoxNzIyODI0ODUxfQ.IJz9hBCs3_X9RXhTUrQ6PGplMPnIVRX5q4Kbu6AN2lQW3m6MPMPTtVQU9NRbcCEeX2B77d-s0YtKkHHX-mWorg"
+  account2: ""
 
 use_encryption: true
 marketingId: "1816854086004391938"
-secretword: "茉莉奶绿销量突破500万杯"
-round: "15:00"
+secretword: "茉莉奶绿 白月光"
+round: "11:00"
