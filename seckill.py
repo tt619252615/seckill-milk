@@ -13,7 +13,7 @@ import hashlib
 
 NETWORK_TIME_URL = "http://api.m.taobao.com/rest/api3.do?api=mtop.common.getTimestamp"
 BASE_URL = "https://mxsa.mxbc.net/api/v1/h5/marketing/secretword/confirm"
-PROXY_URL = ""  # 替换为实际的代理IP获取API
+PROXY_URL = "http://api.dmdaili.com/dmgetip.asp?apikey=b19914fe&pwd=52f202acb3ebba533c80b70022827394&getnum=20&httptype=1&geshi=2&fenge=1&fengefu=&operate=all"  # 替换为实际的代理IP获取API
 DEFAULT_HEADERS: Dict[str, str] = {
     "host": "mxsa.mxbc.net",
     "content-length": "173",
@@ -121,16 +121,20 @@ class Seckkiller:
                 if self.use_encryption:
                     type_1286, self._data = self.encrypt_data(datetime.now())
                     BASE_URL = f"https://mxsa.mxbc.net/api/v1/h5/marketing/secretword/confirm?type__1286={type_1286}"
+                    logger.debug(
+                        f"[{self.account_name}] Encrypted data: {self._data}{BASE_URL}"
+                    )
                 response = requests.post(
                     BASE_URL,
                     headers=self._headers,
                     data=self._data,
                     impersonate="chrome100",
                     proxy=proxies,
-                    timeout=1,
+                    timeout=5,
                 )
 
                 try:
+                    print(response.text)
                     response_data = response.json()
                 except json.JSONDecodeError as json_err:
                     logger.error(f"Failed to decode JSON response: {json_err}")
@@ -156,6 +160,10 @@ class Seckkiller:
             logger.info(
                 f"Attempt {self.attempts}/{self.max_attempts} failed. Retrying..."
             )
+
+        if not self.stop_flag.is_set():
+            logger.error(
+                f"Reached maximum attempts ({self.max_attempts}). Stopping requests."
             )
             self.stop_flag.set()
 
@@ -199,6 +207,8 @@ class Seckkiller:
     def wait_for_start_time(self) -> None:
         proxy_fetch_interval = 5  # 设置获取代理 IP 的间隔时间（秒）
         last_proxy_fetch_time = 0
+        proxy_fetch_failed = False  # 新增标志，用于记录代理获取是否失败
+
         while True:
             current_time = Seckkiller.get_network_time()
             if current_time >= self.start_time:
@@ -209,6 +219,10 @@ class Seckkiller:
             current_timestamp = time.time()
             if (
                 not self.proxy_list
+                and not proxy_fetch_failed  # 只有在之前没有失败时才尝试获取
+                and current_timestamp - last_proxy_fetch_time > proxy_fetch_interval
+            ):
+                self.proxy_list = Seckkiller.get_proxy_ips()
                 last_proxy_fetch_time = current_timestamp
                 if self.proxy_list:
                     logger.info(
@@ -218,6 +232,9 @@ class Seckkiller:
                     logger.info(
                         f"[{self.account_name}] No proxy IPs available, will use local IP"
                     )
+                    proxy_fetch_failed = True  # 标记获取失败，后续不再尝试
+
+            time.sleep(0.01)
 
     def run(self) -> None:
         logger.info(f"[{self.account_name}] Waiting for start time: {self.start_time}")
@@ -305,5 +322,5 @@ def main(start_time: str, config_file: str = "cookie.yaml") -> None:
 
 
 if __name__ == "__main__":
-    start_time = "00:11:50.000"  # 设置开始时间
+    start_time = "22:44:59.985"  # 设置开始时间
     main(start_time)
