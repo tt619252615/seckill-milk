@@ -13,7 +13,7 @@ import hashlib
 
 NETWORK_TIME_URL = "http://api.m.taobao.com/rest/api3.do?api=mtop.common.getTimestamp"
 BASE_URL = "https://mxsa.mxbc.net/api/v1/h5/marketing/secretword/confirm"
-PROXY_URL = "http://api.dmdaili.com/dmgetip.asp?apikey=b19914fe&pwd=52f202acb3ebba533c80b70022827394&getnum=20&httptype=1&geshi=2&fenge=1&fengefu=&operate=all"  # 替换为实际的代理IP获取API
+PROXY_URL = "http://"  # 替换为实际的代理IP获取API
 DEFAULT_HEADERS: Dict[str, str] = {
     "host": "mxsa.mxbc.net",
     "content-length": "173",
