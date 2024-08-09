@@ -1,8 +1,9 @@
 Cookies:
   account1: ""
-thread_count : 1
-max_attempts : 1
-use_encryption: true
+thread_count : 2
+max_attempts : 2
+key_value : "来晚了，券抢完了~"
+use_encryption: false
 marketingId: "1816854086004391938"
 secretword: "茉莉奶绿销量突破2000万杯"
 round: "19:00"

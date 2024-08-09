@@ -12,7 +12,7 @@ import execjs
 import hashlib
 
 NETWORK_TIME_URL = "http://api.m.taobao.com/rest/api3.do?api=mtop.common.getTimestamp"
-BASE_URL = "https://promotion.waimai.meituan.com/lottery/rights/limitcouponcomponent/fetchcoupon?couponReferId=4D21F6F549964FB2A7BA8FB6B3CA28CF&componentId=17225038407340.5619507582448298&geoType=2&gdPageId=569389&pageId=579967&version=1&instanceId=17225038407340.5619507582448298&clientTime=1723031635044&ctype=iphone&utmMedium=iphone&gSource=&dpSource=&utmCampaign=AwaimaiBwaimaiGhomepageH0&utmSource=2000&yodaReady=h5&csecplatform=4&csecversion=2.4.0"
+BASE_URL = "https://promotion.waimai.meituan.com/lottery/rights/limitcouponcomponent/fetchcoupon?couponReferId=1C5C5E27A51F4F6AA8F313A6592733C1&componentId=17230121018850.8127990801029694&geoType=2&gdPageId=569460&pageId=580258&version=1&instanceId=17230121018850.8127990801029694&clientTime=1723171248661&ctype=mtiphone&utmMedium=iphone&gSource=&dpSource=&utmCampaign=AgroupBgroupG&utmSource=AppStore&yodaReady=h5&csecplatform=4&csecversion=2.4.0"
 PROXY_URL = ""  # 替换为实际的代理IP获取API
 DEFAULT_HEADERS: Dict[str, str] = {
     "host": "promotion.waimai.meituan.com",
@@ -20,7 +20,7 @@ DEFAULT_HEADERS: Dict[str, str] = {
     "x-titans-user": "",
     "accept": "application/json, text/plain, */*",
     "sec-fetch-site": "same-site",
-    "dj-token": "BUtNUwMAAABuBktNUwMaOQIAAAABO5rMWgAAACxUk3kku9S+/FhNj6KAztMR9mlxIrC/udidqTpxbVgrQKyl7zdA3lhQZFaStCIsUnufjX8Z5PNzxhhI04A3HgbglGIQxKdAqAdptaKNuxCiQdU66E0y4isjTQIAAABOkMzXIFagiklsGUBtTU/v1lBVFCuFIhJALoyznlBuBjeIx4AHPNv9VL3sInQ3LheLNtxhk8LSA2NwOcTdJf2noP4yBGzy+3BZTLqGw4+Q",
+    "dj-token": "BUtNUwMAAABuBktNUwMaOQIAAAABO5rMWgAAACxUk3kku9S+/FhNj6KAztMR9mlxIrC/udidqTpxbVgrQKyl7zdA3lhQZFaStCIsUnufjX8Z5PNzxhhI04A3HgbglGIQxKdAqAdptaKNuxCiQdU66E0y4isjTQIAAABOpo80ZvkRnLNsLKnP3w3IhtLtR1cYbbRq4MzUMoBNHPoHoXIhYxM4tDa0IDXQK0i1tX1TCRjImd6so8b6ngGD8MJoGg1Kdq6VYhZj9XNu",
     "accept-language": "zh-CN,zh-Hans;q=0.9",
     "sec-fetch-mode": "cors",
     "accept-encoding": "gzip, deflate, br",
@@ -28,15 +28,15 @@ DEFAULT_HEADERS: Dict[str, str] = {
     "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 TitansX/20.0.1.old KNB/1.0 iOS/17.4.1 meituangroup/com.meituan.imeituan/12.23.407 meituangroup/12.23.407 App/10110/12.23.407 iPhone/iPhone12 WKWebView",
     "referer": "https://market.waimai.meituan.com/",
     "content-length": "1589",
-    "mtgsig": '{"a0":"3.0","a1":"7db5788e-97df-40d7-a19c-1cb62ef9f257","a3":24,"a4":1723031635,"a5":"Wce20YcosXsNu0mTl+K1OhkSX5GppDSH5kpir3Wr2J2jFaDEzzFzNCJCw52RcqWRnnPL1hidS/HLC4MSVbufI2+tFl8sa2DGA3iqpLqjYmoIrkGNUPwAssyXhGDP6EtulTUswcPCAAF1JvUsMSfyWGSDGxL7bpNkup6MNsxyjQHrHJmpiTc41aHGRiWEYISCT3/JKSIthbcBNsPpmw1K8Zdacp8+B6kxiMaBqfefgLVVECN1H5kyHWLCNrp6lgrqCFEwxJ1xTcYIArlemOLfMB7yLjQ0qAqxuYtyHMoi1IX+WzLFkDM/Gv51Rp35hGrapvV8Hj49nW2v/eDH2vv5k/IgIAKRjEQOQ3kXHRg2HUf0qvZQLvBVi3NgQ8vnDsCWW9rIXjk3X4jktg==","a6":0,"a7":"EKCzRS4HIsWXc7NmgtOFeRIkzuuUaUn04ts8o+jTCK+t3cnUqUrlnen/7kEQUVP+R0jzrmyyzcLA9FoVocWknKYs6NdIz6f8uehpcfy6oRw=","a8":"664d21ec8cb8090c0c2c80f314d3bbb59217f6083b903830440c978e","a9":"33a6ca7aW6+v1Z0zloZOS00yU+LhoXdI86EoyoOJAbLIvHQ1A9ad8LiLCfsY/6/vzAdcci7DZ3O27eXzg5QOvG96bh7nUTDBuZ3A+MeJR57KOmK7Ww5MulXuPuBNVRgh9nDZi0tnbrb14ldpzaOnsQDuBI6x9dsHYgorkfYGDWyBEjOrPYK7+lzP/vh4HKaddj/mAA/J3WYvfxP7bsarBE2xwsddKU8eO95iMSQfU1Qf0rJdw/pZhSpokDRdZOwrrB3v4z+fcDtc7pTUuLrI9KnmZtOpvFH50ru3Y/Up6sp39TCjGmHhAtzF4JqsAfGVjbpMYQuzFERC+JM6S+GRjUKjilAsnrVt7HglB1l1UM9WSL1dh73Ukf0qJFp5j0PqzmrDbf0OaswyS30K+mQmUkSfi8PNMz4mrKHplOR21bePJl3HaB/6BC829LYxxHZn6qNLr0iSSDxB9RZrpXQ746xVUKppyehbVzHz/Yl5fymDEqMJhm7I371vYam0EdYPsyfB36Drh/mEotKlkFgEc9gE4+HdBYVWEDDllRWflKhWfdEuUdc9vv0UsVESowiSERop5Yh2wzuFHLVZ6zj6pVUNfybn6JK+ENbZwb+23AbxtcONFt83YILnqzbSfr1bry7SEZo6qklFIXzqGCop/dSmQ/MVyw==","a10":"5,78,1.1.6","x0":2,"a2":"7a80a34d625ad118af38aae7bd3a17a8"}',
+    "mtgsig": '{"a0":"3.0","a1":"6f50fb51-23ee-4173-ab33-6ee69ed0ef29","a3":24,"a4":1723171248,"a5":"QCHqdfMKAc6deciLuB9wXRnqVqfxT4kCNjF2qmofB8ql9Bak6pbftKAzds6OIoueNM3+RIXxyDvzD+FGqDjfFZSr0H3VSwmRFFuZCuWsFEgRKFvGZb9iUl8J0bNzevchMdfRADNlHi9J2SbtB1T0g+RG9pXdtFHe1TKVAgM301D8N5d0XIwrFZidgdQQ0I2k186Bq20JhOOz4zVK2jXFLjfdwmE0m77dPYZBwDsYctUeS30jJkTTh2ai+EiDas2v415+pQBRCG7Rmal2HUG2eUSuVyqcOkuVcosKGT84yTTAaIMd2pf52WCWxIEkVOHoOuCbMQm4w8hziFb8BZeYLSSCLhcs6NpNYWkDgfjG/Rwgutkt1eAaTJqtW3ortKih5/a+hC1Xrg==","a6":0,"a7":"EKCzRS4HIsWXc7NmgtOFeRIkzuuUaUn04ts8o+jTCK+t3cnUqUrlnen/7kEQUVP+Z/3ZflTqAQDOOAxGLDU9gXldWIDHWc1iyt3Augwr9BA=","a8":"664d21ec8cb8090c0c2c80f314d3bbb59217f6083b903830440c978e","a9":"dbee2d06ESa/FJm64TD25ijTK/nFXdyKb8+IGK9ttWX2K0sUoN/37ZXNsWkcXWij1hzNVkB7mqQkQ7HCymSUkYR0v9jiP6F6wlm5jiZ2rrudSIbVc0bjV8oF4faiqvTr7uMD9ql3hnHEjZNK+wx7yxYgGNNTPQLBOpvTXaFxeDWCfN8MRTYY02ZUSGOgSH8oRr76CLF2FGHdFQYZybDYYq8crqn0T3BZhTZEEazZ6NnzVEp+piJSyhmkKbg7K8kk5Ym1MKXyVv64D9y+6iQ1PApW/87Bs2rr/ivqSe1AGnWxw+OvMrwi6/WOUs6mhHQH2rDspUyHUECRhUyq8xuCckJjz+pYiRdUev9PCPdzAE8jPmcKV7y73JD9yG5uuffWy1JHWUMWoivNrJ/0rlO0MbMv4Sy9FOYfSXj3x2Le0AmGSIlZqWZb3bRWt2+VbtmOp6BaoYlsW5Me4QoujAnrFP2fiZCoBbJ4+MwWeUdXasdCQTzjXdcC5FrzMGTDY7Xs2663qdyyGjRpxMuDEOeYH/Z7U4boS90Qf44tI2/5HSdTNCunTk/Aje7nHxKLrRTb/TtqLqtPdoVZsqi95B1ncMPd6FaUB8VpZKdHVauaVXl+YGri639LTMkuft/eijO++VT8K09lCOKJ7mZmcXkjP8jnZs3cpCl8mTE94FEOgpvj59jdcf15bsPQPwBlHljR1mU7v3nk7YKzhkC+X2UD5GwJmhrYKQ==","a10":"5,65,1.1.6","x0":2,"a2":"ce4ad251636d34d09e14844cad562679"}',
     "sec-fetch-dest": "empty",
 }
 BASE_DATA: Dict[str, int] = {
-    "cType": "iphone",
+    "cType": "mtiphone",
     "fpPlatform": 5,
     "wxOpenId": "",
-    "appVersion": "8.32.0",
-    "mtFingerprint": "dfp_6.5.16_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",
+    "appVersion": "12.23.407",
+    "mtFingerprint": "",
 }
 
 
@@ -324,5 +324,5 @@ def main(start_time: str, config_file: str = "cookie.yaml") -> None:
 
 
 if __name__ == "__main__":
-    start_time = "17:59:59.950"  # 设置开始时间
+    start_time = "10:59:59.850"  # 设置开始时间
     main(start_time)
