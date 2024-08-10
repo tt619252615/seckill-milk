@@ -3,6 +3,9 @@ Cookies:
 thread_count : 10
 max_attempts : 10
 key_value : "券"
+thread_count : 2
+max_attempts : 2
+key_value : "来晚了，券抢完了~"
 use_encryption: false
 marketingId: "1816854086004391938"
 secretword: "茉莉奶绿销量突破2000万杯"

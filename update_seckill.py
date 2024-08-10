@@ -30,7 +30,8 @@ DEFAULT_HEADERS: Dict[str, str] = {
     "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 TitansX/20.0.1.old KNB/1.0 iOS/17.4.1 meituangroup/com.meituan.imeituan/12.23.407 meituangroup/12.23.407 App/10110/12.23.407 iPhone/iPhone12 WKWebView",
     "referer": "https://market.waimai.meituan.com/",
     "content-length": "1589",
-    "mtgsig": '{"a0":"3.0","a1":"6f50fb51-23ee-4173-ab33-6ee69ed0ef29","a3":24,"a4":1723283720,"a5":"ZF6iRDYrz0ZuLG919qaJzUpX5zxYqdx9j4Tch3JO/0f2zkHUUgbTtwZQZ6dOPv7Bqy+tfbCTGlMZh/OxVLjI6GaKyRcyI6oNZQGM6Kmb8hSm5w/dmFfAR8Sjqa+n/zJptCd6EM+u89qvcv5sjUexplrZe+RHwhhweDUIxtUiwFHCcHX/Govlm7cVD3wbB9n6JQ4fQfcKWW4k36aQzB6tYf54Sa0h8nj9d0tBoX88CdJcO7XSSD+CIon2Vm3Vk69aAnrAH6wUgVQ+eMW5UI5WVLQm6TQZughbD1R1SWXM8IGYe9x80bKa+Sdt27agqGJovIRjj8nf/ZTENtMDzBR4BLyKDQwTkooL8HavvwhBEhDkDPYP1McJB1Vd2bC86ZZQ/VezxJw26098","a6":0,"a7":"EKCzRS4HIsWXc7NmgtOFeRIkzuuUaUn04ts8o+jTCK+t3cnUqUrlnen/7kEQUVP+wF7ayXampeXV98pc4DPNfhHN8y6ljyciLpP85Y5iZN0=","a8":"664d21ec8cb8090c0c2c80f314d3bbb59217f6083b903830440c978e","a9":"eedafca2PnGDu75KaxnwN3xYSTpnPhBCpcVzr7P7g0RTnz3uVUDVJqaXBTMCmmm+6iAn1SGDK/CYKVmk+ZECdEFFq0sy7XxueLXCY1O5N33S9ovrhF8pejYEVwCtvdCVowwbbStKFyp8teV4V095DQB3CQV7mgynlq6fmwVX454VUhLaO4HwmgdUSdwR216ICKIaBcTLixLVGuWMQlz762j2XrGDBHIYcmifGnuVwGLW6Oga85TGtGUpVHHN0xMeVV0XSS04eHYv+dUKQxZbIRW6/JfhdBPm1lECtaHJPl+waK3gOVX17GNka/NYsCmufKpWru1Rt+x4HACTud4vYiP00yKV+JiAgMWHRx68lAx/qkAtnS400bB08pFiiSLK8DnYyoUZ8tNHQ3j3rSwTdAYt614Kw9ZrqXi4xMmZzKH9e+Ai3mW7a8DyByWXRrGRfCVOpYU6et9Njuys+ameNOEZR41GFNzTwa6Nf6TsDlR175MLEYcql/5A5yMpalcgohYdPPvSp3jr4MraD5OYJxu56M9VcOLOIhxYUS7bV761hcFE4m872QIQYnkafa+bTyp1DyHUSATXH1dpyBUFTM6KXbVnEIF148SgFrHeinInMFVzXnVVQsMktMu3uxE+7LJUv530AkikTkWmh/F2Stl9epNa8rZLT/wex07F23DMRovDhSo=","a10":"5,25,1.1.6","x0":2,"a2":"4995ee45ad135ba0d389370e770c9668"}',
+    "mtgsig": '',
+  
     "sec-fetch-dest": "empty",
 }
 BASE_DATA: Dict[str, int] = {
