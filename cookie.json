@@ -1,0 +1,81 @@
+{
+    "users": [
+        {
+            "account_name": "user1",
+            "cookie_id": "",
+            "cookie_name": "cookie",
+            "basurl": "https://seckill.mt.com",
+            "max_attempts": 1,
+            "thread_count": 1,
+            "key_value": "已",
+            "headers": {
+                "host": "",
+                "content-type": "application/json",
+                "x-titans-user": "",
+                "accept": "application/json, text/plain, */*",
+                "sec-fetch-site": "same-site",
+                "dj-token": "",
+                "accept-language": "zh-CN,zh-Hans;q=0.9",
+                "sec-fetch-mode": "cors",
+                "accept-encoding": "gzip, deflate, br",
+                "origin": "",
+                "user-agent": "",
+                "referer": "",
+                "content-length": "1589",
+                "sec-fetch-dest": "empty",
+                "mtgsig": "{\"a0\":\"3.0\",}"
+            },
+            "data": {
+                "cType": "mtiphone",
+                "fpPlatform": 5,
+                "wxOpenId": "",
+                "appVersion": "12.23.407",
+                "mtFingerprint": ""
+            },
+            "proxy_flag": false,
+            "use_encryption": false
+        },
+        {
+            "account_name": "user2",
+            "cookie_id": "",
+            "cookie_name": "access-token",
+            "basurl": "",
+            "max_attempts": 1,
+            "thread_count": 1,
+            "key_value": "",
+            "headers": {
+                "host": "",
+                "content-length": "173",
+                "accept": "application/json, text/plain, */*",
+                "access-token": "",
+                "user-agent": "",
+                "content-type": "",
+                "origin": "",
+                "sec-fetch-site": "same-site",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-dest": "empty",
+                "referer": "",
+                "accept-encoding": "gzip, deflate, br",
+                "accept-language": "zh-CN,zh;q=0.9"
+            },
+            "data": {
+                "marketingId": "",
+                "round": "19:00",
+                "secretword": "",
+                "sign": "",
+                "s": 2,
+                "stamp": 1722770317130
+            },
+            "proxy_flag": true,
+            "use_encryption": true
+        }
+    ],
+    "proxies": "",
+    "mixues": [
+        {
+            "marketingId": "",
+            "round": "",
+            "secretword": ""
+        }
+    ]
+}

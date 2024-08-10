@@ -2,9 +2,7 @@ import threading
 import time
 from datetime import datetime, date
 from typing import Dict, Optional, List
-
-# from curl_cffi import requests
-import requests
+from curl_cffi import requests
 import json
 import yaml
 import multiprocessing
@@ -13,41 +11,17 @@ import random
 import execjs
 import hashlib
 
-NETWORK_TIME_URL = "http://api.m.taobao.com/rest/api3.do?api=mtop.common.getTimestamp"
-BASE_URL = ""
-PROXY_URL = ""  # 替换为实际的代理IP获取API
-DEFAULT_HEADERS: Dict[str, str] = {
-    "host": "promotion.waimai.meituan.com",
-    "content-type": "application/json",
-    "x-titans-user": "",
-    "accept": "application/json, text/plain, */*",
-    "sec-fetch-site": "same-site",
-    "dj-token": "BUtNUwMAAABuBktNUwMaOQIAAAABO5rMWgAAACxUk3kku9S+/FhNj6KAztMR9mlxIrC/udidqTpxbVgrQKyl7zdA3lhQZFaStCIsUnufjX8Z5PNzxhhI04A3HgbglGIQxKdAqAdptaKNuxCiQdU66E0y4isjTQIAAABOC6Uiesp8iSvHAkIoBrYxvZpFl8RwVAg5JIanj0RoCERxr+Zmt0G6a7E6gjPecLnk7ED+aVqnPFqS4TtbghSEvZAdNlTn4SuEnH20DSqc",
-    "accept-language": "zh-CN,zh-Hans;q=0.9",
-    "sec-fetch-mode": "cors",
-    "accept-encoding": "gzip, deflate, br",
-    "origin": "https://market.waimai.meituan.com",
-    "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 TitansX/20.0.1.old KNB/1.0 iOS/17.4.1 meituangroup/com.meituan.imeituan/12.23.407 meituangroup/12.23.407 App/10110/12.23.407 iPhone/iPhone12 WKWebView",
-    "referer": "https://market.waimai.meituan.com/",
-    "content-length": "1589",
-    "mtgsig": '',
-  
-    "sec-fetch-dest": "empty",
-}
-BASE_DATA: Dict[str, int] = {
-    "cType": "mtiphone",
-    "fpPlatform": 5,
-    "wxOpenId": "",
-    "appVersion": "12.23.407",
-    "mtFingerprint": "",
-}
-
 
 class Seckkiller:
 
     def __init__(
         self,
         cookie_id: str,
+        cooke_name: str,
+        headers: Dict[str, str],
+        data: Dict[str, int],
+        base_url: str,
+        proxy_url: str,
         start_time: datetime.time,
         account_name: Optional[str] = None,
         max_attempts: int = 1,
@@ -55,11 +29,14 @@ class Seckkiller:
         key_value: Optional[Dict[str, str]] = None,
         use_encryption: bool = False,
         encryption_params: Optional[Dict[str, str]] = None,
+        proxy_flag: bool = False,
     ):
         self.cookie_id: str = cookie_id
-        self._headers: Dict[str, str] = {**DEFAULT_HEADERS, "cookie": cookie_id}
-        self._data: Dict[str, int] = BASE_DATA
-        self._base_url: str = BASE_URL
+        self.cooke_name: str = cooke_name
+        self._headers: Dict[str, str] = {**headers, self.cooke_name: cookie_id}
+        self._data: Dict[str, int] = data
+        self._base_url: str = base_url
+        self._proxy_url: str = proxy_url
         self.max_attempts: int = max_attempts
         self.attempts: int = 0
         self.key_value: Optional[Dict[str, str]] = key_value
@@ -70,6 +47,7 @@ class Seckkiller:
         self.proxy_list: List[Dict[str, str]] = []
         self.use_encryption: bool = use_encryption
         self.encryption_params: Optional[Dict[str, str]] = encryption_params
+        self.proxy_flag: bool = proxy_flag
         if self.use_encryption:
             with open("./js/mixue.js", "r", encoding="utf-8") as js_file:
                 self.encryption_js = execjs.compile(js_file.read())
@@ -126,26 +104,31 @@ class Seckkiller:
             try:
                 if self.use_encryption:
                     type_1286, self._data = self.encrypt_data(datetime.now())
-                    BASE_URL = f"https://mxsa.mxbc.net/api/v1/h5/marketing/secretword/confirm?type__1286={type_1286}"
+                    self._base_url = f"https://mxsa.mxbc.net/api/v1/h5/marketing/secretword/confirm?type__1286={type_1286}"
+                # logger.debug(f"[{self.account_name}] Request: {self._data}")
+                # logger.debug(f"[{self.account_name}] URL: {self._base_url}")
+                # logger.debug(f"[{self.account_name}] Headers: {self._headers}")
+                # logger.debug(f"[{self.account_name}] Proxies: {proxies}")
                 response = requests.post(
                     self._base_url,
                     headers=self._headers,
                     data=json.dumps(
                         self._data, separators=(",", ":"), ensure_ascii=False
                     ),
-                    # impersonate="chrome100",
-                    # proxy=proxies,
+                    impersonate="chrome100",
+                    proxy=proxies,
                     timeout=1,
                 )
-
                 try:
+                    # print(response.text)
                     response_data = response.json()
+                    message = response_data.get("msg", "")
                 except json.JSONDecodeError as json_err:
                     logger.error(f"Failed to decode JSON response: {json_err}")
                     response_data = None
 
                 if response_data:
-                    logger.debug(f"[{self.account_name}] Response: {response_data}")
+                    logger.debug(f"[{self.account_name}] Response: {message}")
                     if self.key_value in response_data.get("msg", "").lower():
                         logger.info(
                             f"[{self.account_name}] Successfully completed the request."
@@ -154,7 +137,7 @@ class Seckkiller:
                         break
                     else:
                         logger.warning(
-                            f"[{self.account_name}] Unexpected response: {response_data}"
+                            f"[{self.account_name}] Unexpected response: {message}"
                         )
 
             except Exception as e:
@@ -179,10 +162,13 @@ class Seckkiller:
 
     @staticmethod
     def get_network_time() -> datetime.time:
+        NetworkTimeUrl = (
+            "http://api.m.taobao.com/rest/api3.do?api=mtop.common.getTimestamp"
+        )
         try:
             response = requests.get(
-                NETWORK_TIME_URL,
-                # impersonate="chrome100",
+                NetworkTimeUrl,
+                impersonate="chrome100",
             )
             res = response.json()
             now_time = int(res["data"]["t"]) / 1000.0
@@ -191,22 +177,25 @@ class Seckkiller:
             logger.error(f"Request failed: {e}")
             return datetime.now().time()
 
-    @staticmethod
-    def get_proxy_ips() -> List[Dict[str, str]]:
-        try:
-            response = requests.get(
-                PROXY_URL,
-                # impersonate="chrome100",
-            )
-            data = response.json()
-            if data["success"] and data["code"] == 0:
-                return data["data"]
-            else:
-                logger.error(f"Failed to get proxy IP9s: {data['msg']}")
-                return []
-        except requests.errors.RequestsError as e:
-            logger.error(f"Failed to get proxy IPs: {e}")
+    def get_proxy_ips(self) -> List[Dict[str, str]]:
+        if self.proxy_flag == False:
+            logger.info(f"[{self.account_name}] Using proxy IP9s")
             return []
+        else:
+            try:
+                response = requests.get(
+                    self._proxy_url,
+                    impersonate="chrome100",
+                )
+                data = response.json()
+                if data["success"] and data["code"] == 0:
+                    return data["data"]
+                else:
+                    logger.error(f"Failed to get proxy IP9s: {data['msg']}")
+                    return []
+            except requests.errors.RequestsError as e:
+                logger.error(f"Failed to get proxy IPs: {e}")
+                return []
 
     def wait_for_start_time(self) -> None:
         proxy_fetch_interval = 5  # 设置获取代理 IP 的间隔时间（秒）
@@ -226,8 +215,7 @@ class Seckkiller:
                 and not proxy_fetch_failed  # 只有在之前没有失败时才尝试获取
                 and current_timestamp - last_proxy_fetch_time > proxy_fetch_interval
             ):
-                # self.proxy_list = Seckkiller.get_proxy_ips()
-                self.proxy_list = None
+                self.proxy_list = self.get_proxy_ips()
                 last_proxy_fetch_time = current_timestamp
                 if self.proxy_list:
                     logger.info(
@@ -253,80 +241,3 @@ class Seckkiller:
             t.join()
 
         logger.info(f"[{self.account_name}] Seckill finished")
-
-
-class SeckillManager:
-    def __init__(self, config_file: str, start_time: str):
-        self.config_file: str = config_file
-        self.start_time: datetime.time = datetime.strptime(
-            start_time, "%H:%M:%S.%f"
-        ).time()
-        self.config: Dict = self.load_config()
-        self.account_cookie_map: Dict[str, str] = self.config.get("Cookies", {})
-
-    def load_config(self) -> Dict:
-        with open(self.config_file, "r", encoding="utf-8") as f:
-            return yaml.safe_load(f)
-
-    def worker(self, account_name: str, cookie_id: str) -> None:
-        use_encryption = self.config.get("use_encryption", False)
-        encryption_params = None
-        if use_encryption:
-            encryption_params = {
-                "marketingId": self.config.get("marketingId", ""),
-                "round": self.config.get("round", ""),  # 获取round的值
-                "secretword": self.config.get("secretword", ""),
-            }
-
-        seckkiller = Seckkiller(
-            cookie_id,
-            self.start_time,
-            account_name,
-            max_attempts=self.config.get("max_attempts", ""),
-            thread_count=self.config.get("thread_count", ""),
-            key_value=self.config.get("key_value", ""),
-            use_encryption=use_encryption,
-            encryption_params=encryption_params,
-        )
-        seckkiller.run()
-
-    def print_remaining_time(self) -> None:
-        while True:
-            current_time = Seckkiller.get_network_time()
-            remaining_seconds = (
-                datetime.combine(date.today(), self.start_time)
-                - datetime.combine(date.today(), current_time)
-            ).total_seconds()
-            if remaining_seconds <= 0:
-                logger.info("Time is up! All processes should start seckill...")
-                break
-            logger.info(f"Remaining time: {remaining_seconds:.2f} seconds")
-            time.sleep(0.5)
-
-    def run(self) -> None:
-        timer_process = multiprocessing.Process(target=self.print_remaining_time)
-        timer_process.start()
-
-        processes: List[multiprocessing.Process] = []
-        for account_name, cookie_id in self.account_cookie_map.items():
-            p = multiprocessing.Process(
-                target=self.worker, args=(account_name, cookie_id)
-            )
-            p.start()
-            processes.append(p)
-
-        for p in processes:
-            p.join()
-
-        timer_process.terminate()
-        timer_process.join()
-
-
-def main(start_time: str, config_file: str = "cookie.yaml") -> None:
-    manager = SeckillManager(config_file, start_time)
-    manager.run()
-
-
-if __name__ == "__main__":
-    start_time = "18:59:59.550"  # 设置开始时间
-    main(start_time)
