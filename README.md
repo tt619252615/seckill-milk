@@ -21,7 +21,7 @@ data部分也需要修改，每天的id和答案不同。
 ### 正常秒杀(8.10)：
 现在配置cookie.json 和managerun.run中的启动时间即可。
 参数说明：
-- start_time: 开始时间，格式为"HH:mm:ss"，例如" 00:00:00"
+- start_time: 开始时间，格式为"HH:mm:ss:ms"，例如" 00:00:00:000"。
 - users：类型是{}.
 - --cookie_id: 用户id，授权的关键字段，字符串类型
 - --account_name: 备注名，字符串类型。
@@ -37,7 +37,6 @@ data部分也需要修改，每天的id和答案不同。
 - proxies：代理地址，类型是str
 - mixues：mixue加密算法的配置，可用于配置mixue加密算法的相关参数。
   截至目前我测试是正常的，有问题的可以提交issue。
-=======
 
 ####(8.9)  新增MT的重发测试。适用最近的奶茶，鲜花等等可以通过重发请求实现的秒杀。
 1.抓包相关参数不细说。2.cookie.yaml中设置use_encryption:false。3.使用update_seckill.py脚本即可。
