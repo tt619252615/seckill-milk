@@ -171,7 +171,7 @@ class KuDiEncryptionStrategy(RequestStrategy):
         headers["sign"] = encrypted_sign
         headers["timestamp"] = str(timestamp)
         data = json.dumps(data, separators=(",", ":"), ensure_ascii=False)
-        print(data)
+        # print(data)
         return base_url, data, headers
 
     def process_response(self, response: requests.Response) -> Dict:
@@ -185,7 +185,7 @@ class KuDiEncryptionStrategy(RequestStrategy):
     def _encrypt_data(self, data: Dict, current_time: datetime) -> Dict:
         # timestamp = int(current_time.timestamp() * 1000)
         kudi_params = f"path/cotti-capi/universal/coupon/receiveLaunchRewardH5timestamp{current_time}versionv1Bu0Zsh4B0SnKBRfds0XWCSn51WJfn5yN"
-        print(kudi_params)
+        # print(kudi_params)
         encrypted_sign = Encryptor.foundation_md5(kudi_params).upper()
         return encrypted_sign
 
