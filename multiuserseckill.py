@@ -2,14 +2,13 @@ import threading
 import time
 from datetime import datetime, date
 from typing import Dict, Optional, List
-from curl_cffi import requests
-import json
-import yaml
-import multiprocessing
+
+# from curl_cffi import requests
+import requests
 from loguru import logger
 import random
-import execjs
 import hashlib
+from encory import RequestStrategyManager
 
 
 class Seckkiller:
@@ -27,8 +26,9 @@ class Seckkiller:
         max_attempts: int = 1,
         thread_count: int = 1,
         key_value: Optional[Dict[str, str]] = None,
-        use_encryption: bool = False,
-        encryption_params: Optional[Dict[str, str]] = None,
+        key_messgae: str = None,
+        strategy_flag: Optional[str] = None,
+        strategy_params: Optional[Dict[str, str]] = None,
         proxy_flag: bool = False,
     ):
         self.cookie_id: str = cookie_id
@@ -40,17 +40,17 @@ class Seckkiller:
         self.max_attempts: int = max_attempts
         self.attempts: int = 0
         self.key_value: Optional[Dict[str, str]] = key_value
+        self.key_messgae: str = key_messgae
         self.account_name: Optional[str] = account_name
         self.stop_flag: threading.Event = threading.Event()
         self.thread_count: int = thread_count
         self.start_time: datetime.time = start_time
         self.proxy_list: List[Dict[str, str]] = []
-        self.use_encryption: bool = use_encryption
-        self.encryption_params: Optional[Dict[str, str]] = encryption_params
+        self.strategy_flag: bool = strategy_flag
+        self.strategy_manager = RequestStrategyManager()
+        if strategy_flag and strategy_params:
+            self.strategy_manager.update_strategy_params(strategy_flag, strategy_params)
         self.proxy_flag: bool = proxy_flag
-        if self.use_encryption:
-            with open("./js/mixue.js", "r", encoding="utf-8") as js_file:
-                self.encryption_js = execjs.compile(js_file.read())
 
     def encrypt_data(self, current_time: datetime) -> None:
         if not self.use_encryption or not self.encryption_params:
@@ -89,7 +89,7 @@ class Seckkiller:
             proxy = random.choice(self.proxy_list) if self.proxy_list else None
             proxies = (
                 f"http://{proxy['ip']}:{proxy['port']}"
-                if proxy and self.use_encryption
+                if proxy and self.proxy_flag
                 else (
                     {
                         "http": f"http://{proxy['ip']}:{proxy['port']}",
@@ -100,45 +100,42 @@ class Seckkiller:
                 )
             )
 
-            logger.debug(f"[{self.account_name}] Using proxy: {proxies}")
             try:
-                if self.use_encryption:
-                    type_1286, self._data = self.encrypt_data(datetime.now())
-                    self._base_url = f"https://mxsa.mxbc.net/api/v1/h5/marketing/secretword/confirm?type__1286={type_1286}"
-                # logger.debug(f"[{self.account_name}] Request: {self._data}")
-                # logger.debug(f"[{self.account_name}] URL: {self._base_url}")
-                # logger.debug(f"[{self.account_name}] Headers: {self._headers}")
-                # logger.debug(f"[{self.account_name}] Proxies: {proxies}")
+                current_time = datetime.now()
+                strategy = self.strategy_manager.get_strategy(self.strategy_flag)
+                url, process_data, headers = strategy.prepare_request(
+                    current_time, self._data, self._headers, self._base_url
+                )
+                # logger.debug(f"[{self.account_name}] Request: {url} {process_data}")
+                # logger.debug(f"[{self.account_name}] Headers: {headers}")
+                # logger.debug(f"[{self.account_name}] Proxies: {proxy}")
+                # logger.debug(f"[{self.account_name}] Strategy: {strategy}")
+                # logger.debug(
+                #     f"[{self.account_name}] Strategy Params: {self.strategy_flag}"
+                # )
                 response = requests.post(
-                    self._base_url,
-                    headers=self._headers,
-                    data=json.dumps(
-                        self._data, separators=(",", ":"), ensure_ascii=False
-                    ),
-                    impersonate="chrome100",
-                    proxy=proxies,
+                    url,
+                    headers=headers,
+                    data=process_data,
+                    proxies=proxies,
+                    # impersonate="chrome100",
                     timeout=1,
                 )
-                try:
-                    # print(response.text)
-                    response_data = response.json()
-                    message = response_data.get("msg", "")
-                except json.JSONDecodeError as json_err:
-                    logger.error(f"Failed to decode JSON response: {json_err}")
-                    response_data = None
+                # print(response.text)
+                response_data = strategy.process_response(response)
 
-                if response_data:
-                    logger.debug(f"[{self.account_name}] Response: {message}")
-                    if self.key_value in response_data.get("msg", "").lower():
-                        logger.info(
-                            f"[{self.account_name}] Successfully completed the request."
-                        )
-                        self.stop_flag.set()
-                        break
-                    else:
-                        logger.warning(
-                            f"[{self.account_name}] Unexpected response: {message}"
-                        )
+                message = response_data.get(self.key_messgae, "")
+                logger.debug(f"[{self.account_name}] Response: {message}")
+                if self.key_value in message.lower():
+                    logger.info(
+                        f"[{self.account_name}] Successfully completed the request."
+                    )
+                    self.stop_flag.set()
+                    break
+                else:
+                    logger.warning(
+                        f"[{self.account_name}] Unexpected response: {message}"
+                    )
 
             except Exception as e:
                 logger.error(f"Request failed: {e}")
@@ -147,7 +144,6 @@ class Seckkiller:
             logger.info(
                 f"Attempt {self.attempts}/{self.max_attempts} failed. Retrying..."
             )
-
         if not self.stop_flag.is_set():
             logger.error(
                 f"Reached maximum attempts ({self.max_attempts}). Stopping requests."
@@ -168,7 +164,7 @@ class Seckkiller:
         try:
             response = requests.get(
                 NetworkTimeUrl,
-                impersonate="chrome100",
+                # impersonate="chrome100",
             )
             res = response.json()
             now_time = int(res["data"]["t"]) / 1000.0
@@ -185,7 +181,7 @@ class Seckkiller:
             try:
                 response = requests.get(
                     self._proxy_url,
-                    impersonate="chrome100",
+                    # impersonate="chrome100",
                 )
                 data = response.json()
                 if data["success"] and data["code"] == 0:
@@ -225,6 +221,7 @@ class Seckkiller:
                     logger.info(
                         f"[{self.account_name}] No proxy IPs available, will use local IP"
                     )
+                    logger.debug(f"[{self.proxy_list}] Proxy fetch failed")
                     proxy_fetch_failed = True  # 标记获取失败，后续不再尝试
 
             time.sleep(0.01)
