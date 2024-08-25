@@ -125,6 +125,6 @@ def main(start_time: str, config_file: str) -> None:
 
 
 if __name__ == "__main__":
-    start_time = "15:59:59.950"
+    start_time = "10:59:59.950"
     config_file = "kudicookie.json"
     main(start_time, config_file)
