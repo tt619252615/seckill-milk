@@ -11,6 +11,25 @@ data部分也需要修改，每天的id和答案不同。
 ### mixue正常使用，使用update_seckill.py脚本即可。
 
 =======
+### 正常秒杀(9.7)：
+现在配置cookie.json 和managerun.run中的启动时间即可。支持模式有MT方法自带get不用手动再次去get请求,mixue,库迪,小部分JD任务以及默认方法None。
+参数说明：
+- start_time: 开始时间，格式为"HH:mm:ss:ms"，例如" 00:00:00:000"。
+- users：类型是{}.
+- --cookie_id: 用户id，授权的关键字段，字符串类型
+- --account_name: 备注名，字符串类型。
+- --cookie: 用户的cookie，字符串类型。
+- --basurl：请求地址，字符串类型。
+- --max_attempts: 最大尝试次数，整数类型。
+- --thread_count: 线程数，整数类型。
+- --key_message: 重发请求返回json格式中需要提取的key，字符串类型。
+- --key_value：返回的key中的value，可用于停止脚本。
+- --headers：请求头，可用于增加请求头。
+- --data：请求参数，可用于增加请求参数。
+- --proxy_flag：启用代理的标志，布尔类型。
+- --strategy_flag：是否使用加密算法,默认重发方法可以设置成None。字符串类型。
+- proxies：代理地址，类型是str
+- mixues：mixue加密算法的配置，可用于配置mixue加密算法的相关参数。
 ### mixue使用方法：
 1.必须有node的环境，自行安装。
 2.cookie.yaml中设置use_encryption: true

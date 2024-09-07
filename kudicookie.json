@@ -1,0 +1,53 @@
+{
+    "users": [
+        {
+            "account_name": "user1",
+            "cookie_id": "token_value",
+            "cookie_name": "token",
+            "basurl": "https://ma.cotticoffee.com/cotti-capi/universal/coupon/receiveLaunchRewardH5",
+            "max_attempts": 1,
+            "thread_count": 1,
+            "key_value": "成功",
+            "key_message": "message",
+            "headers": {
+                "host": "ma.cotticoffee.com",
+                "content-length": "152",
+                "version": "v1",
+                "split_timestamp": "0",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 MicroMessenger/7.0.20.1781(0x6700143B) NetType/WIFI MiniProgramEnv/Windows WindowsWechat/WMPF WindowsWechat(0x63090b19)XWEB/11177",
+                "content-type": "application/json",
+                "timestamp": "1724033297229",
+                "brandmdcode": "20200000006",
+                "api-version": "v1",
+                "cookie": "",
+                "sign": "B3173AF90252C35F342567DFD8A0D133",
+                "appkey": "",
+                "accept": "*/*",
+                "origin": "https://m.cotticoffee.com",
+                "sec-fetch-site": "same-site",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-dest": "empty",
+                "referer": "https://m.cotticoffee.com/",
+                "accept-encoding": "gzip, deflate, br",
+                "accept-language": "zh-CN,zh;q=0.9"
+            },
+            "data": {
+                "activityNo": "",
+                "mobile": "",
+                "comeFrom": "4",
+                "openid": null,
+                "blackBox": ""
+            },
+            "proxy_flag": false,
+            "strategy_flag": "KuDi"
+        }
+    ],
+    "proxies": "",
+    "mixues": [
+        {
+            "marketingId": "",
+            "round": "",
+            "secretword": ""
+        }
+    ]
+}

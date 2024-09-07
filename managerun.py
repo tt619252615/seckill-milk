@@ -1,6 +1,7 @@
 from multiuserseckill import Seckkiller
 from datetime import datetime, date
 from typing import Dict, Optional, List
+from encory import *
 import time
 import json
 import multiprocessing
@@ -14,7 +15,6 @@ class SeckillManager:
         self.config = self.load_json_config()
         self.proxies = self.config.get("proxies", "")
         self.mixues = self.config.get("mixues", [])
-        # self.use_encryption = self.config.get("use_encryption", False)
 
     def load_json_config(self) -> Dict:
         with open(self.config_file, "r", encoding="utf-8") as f:
@@ -32,8 +32,9 @@ class SeckillManager:
         max_attempts: int,
         thread_count: int,
         key_value: str,
-        use_encryption: bool,
-        encryption_params: Optional[Dict] = None,
+        key_messgae: str,
+        strategy_flag: Optional[str],
+        strategy_params: Optional[Dict] = None,
         proxy_flag: bool = False,
     ) -> None:
         logger.info(f"Starting seckill for {account_name}...")
@@ -49,8 +50,9 @@ class SeckillManager:
             max_attempts=max_attempts,
             thread_count=thread_count,
             key_value=key_value,
-            use_encryption=use_encryption,
-            encryption_params=encryption_params,
+            key_messgae=key_messgae,
+            strategy_flag=strategy_flag,
+            strategy_params=strategy_params,
             proxy_flag=proxy_flag,
         )
         seckkiller.run()
@@ -80,15 +82,17 @@ class SeckillManager:
             max_attempts = user.get("max_attempts", 10)
             thread_count = user.get("thread_count", 5)
             key_value = user.get("key_value", "")
+            key_messgae = user.get("key_message", "")
             headers = user.get("headers", {})
             data = user.get("data", {})
-            use_encryption = user.get("use_encryption", False)
             proxy_flag = user.get("proxy_flag", False)
+            strategy_flag = user.get("strategy_flag")
 
-            encryption_params = None
-            if use_encryption and self.mixues:
-                encryption_params = self.mixues[0]
-            # logger.info(f"cat all user info: {user}")
+            strategy_params = None
+            if strategy_flag == "mixue" and self.mixues:
+                strategy_params = self.mixues[0]
+            elif strategy_flag and "strategy_params" in user:
+                strategy_params = user.get("strategy_params")
             p = multiprocessing.Process(
                 target=self.worker,
                 args=(
@@ -101,8 +105,9 @@ class SeckillManager:
                     max_attempts,
                     thread_count,
                     key_value,
-                    use_encryption,
-                    encryption_params,
+                    key_messgae,
+                    strategy_flag,
+                    strategy_params,
                     proxy_flag,
                 ),
             )
@@ -120,6 +125,6 @@ def main(start_time: str, config_file: str) -> None:
 
 
 if __name__ == "__main__":
-    start_time = "21:33:59.950"
-    config_file = "cookie.json"
+    start_time = "10:59:59.950"
+    config_file = "kudicookie.json"
     main(start_time, config_file)
