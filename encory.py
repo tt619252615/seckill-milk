@@ -11,6 +11,8 @@ import hashlib
 import execjs
 from datetime import datetime
 from typing import Dict, Any, Tuple, Optional
+from loguru import logger
+from urllib.parse import urlparse, parse_qs
 
 
 class Encryptor:
@@ -182,12 +184,63 @@ class KuDiEncryptionStrategy(RequestStrategy):
         else:
             return None
 
-    def _encrypt_data(self, data: Dict, current_time: datetime) -> Dict:
-        # timestamp = int(current_time.timestamp() * 1000)
-        kudi_params = f"path/cotti-capi/universal/coupon/receiveLaunchRewardH5timestamp{current_time}versionv1Bu0Zsh4B0SnKBRfds0XWCSn51WJfn5yN"
-        # print(kudi_params)
-        encrypted_sign = Encryptor.foundation_md5(kudi_params).upper()
-        return encrypted_sign
+
+class MTEncryptionStrategy(RequestStrategy):
+    def __init__(self, encryption_params: Dict):
+        self.encryption_params = encryption_params or {}
+        self.flage = ""
+
+    def prepare_request(
+        self, current_time: datetime, data: Dict, headers: Dict, base_url: str
+    ) -> Tuple[str, Dict, Dict]:
+        # info = MTEncryptionStrategy.get_coupon_info(headers, base_url)
+        # print(info)
+        if self.flage != "":
+            data = json.dumps(data, separators=(",", ":"), ensure_ascii=False)
+            return base_url, data, headers
+        else:
+            info = MTEncryptionStrategy.get_coupon_info(headers, base_url)
+            data = json.dumps(data, separators=(",", ":"), ensure_ascii=False)
+            self.flage = info.get("msg", {})
+            return base_url, data, headers
+
+    def process_response(self, response: requests.Response) -> Dict:
+        res = response.json()
+        return res
+
+    def _get_couponId(self, basurl):
+        return basurl.split("couponReferIds=")[1].split("&")[0]
+
+    @staticmethod
+    def get_coupon_info(headers: Dict, basurl: str):
+        # couponId = basurl.split("couponReferIds=")[1].split("&")[0]
+        # print(couponId)
+        parsed_url = urlparse(basurl)
+        query_params = parse_qs(parsed_url.query)
+        couponId = query_params.get("couponReferId")[0]
+        cookie = headers["cookie"]
+        URL1 = "https://promotion.waimai.meituan.com/lottery/limitcouponcomponent/info?couponReferIds={}&actualLng=118.33515&actualLat=35.04518&geoType=2".format(
+            couponId
+        )
+        headers_temp = {
+            "dj-token": "",
+            "User-Agent": "Mozilla/5.0 (Linux; Android 13; MI 6 Build/TQ2A.230405.003.E1; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/112.0.5615.136 Mobile Safari/537.36 TitansX/12.9.1 KNB/1.2.0 android/13 mt/com.sankuai.meituan/12.9.404 App/10120/12.9.404 MeituanGroup/12.9.404",
+            "Content-Type": "application/json",
+            "X-Requested-With": "com.sankuai.meituan",
+            "Sec-Fetch-Site": "same-site",
+            "Sec-Fetch-Mode": "cors",
+            "mtgsig": "",
+            "Sec-Fetch-Dest": "empty",
+            "Cookie": cookie,
+        }
+        logger.info(f"URL1: {headers}")
+        response = requests.get(url=URL1, headers=headers_temp)
+        # self.flage = response.json().get("msg", {})
+        # print(self.flage)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return None
 
 
 class RequestStrategyManager:
@@ -196,6 +249,7 @@ class RequestStrategyManager:
             None: DefaultRequestStrategy(),
             "mixue": MixueEncryptionStrategy({}),  # 初始化时传入空字典，后续可以更新
             "KuDi": KuDiEncryptionStrategy({}),
+            "MT": MTEncryptionStrategy({}),
             "JD": JDRequestStrategy(),
         }
 
