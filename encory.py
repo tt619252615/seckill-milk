@@ -233,7 +233,7 @@ class MTEncryptionStrategy(RequestStrategy):
             "Sec-Fetch-Dest": "empty",
             "Cookie": cookie,
         }
-        logger.info(f"URL1: {headers}")
+        # logger.info(f"URL1: {headers}")
         response = requests.get(url=URL1, headers=headers_temp)
         # self.flage = response.json().get("msg", {})
         # print(self.flage)

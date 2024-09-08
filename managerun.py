@@ -9,12 +9,15 @@ from loguru import logger
 
 
 class SeckillManager:
-    def __init__(self, config_file: str, start_time: str):
+    def __init__(self, config_file: str):
         self.config_file = config_file
-        self.start_time = datetime.strptime(start_time, "%H:%M:%S.%f").time()
+        # self.start_time = datetime.strptime(start_time, "%H:%M:%S.%f").time()
         self.config = self.load_json_config()
         self.proxies = self.config.get("proxies", "")
         self.mixues = self.config.get("mixues", [])
+        self.start_time = datetime.strptime(
+            self.config.get("start_time", ""), "%H:%M:%S.%f"
+        ).time()
 
     def load_json_config(self) -> Dict:
         with open(self.config_file, "r", encoding="utf-8") as f:
@@ -119,12 +122,12 @@ class SeckillManager:
         timer_process.join()
 
 
-def main(start_time: str, config_file: str) -> None:
-    manager = SeckillManager(config_file, start_time)
+def main(config_file: str) -> None:
+    manager = SeckillManager(config_file)
     manager.run()
 
 
 if __name__ == "__main__":
-    start_time = "10:59:59.950"
+    # start_time = "10:59:59.950"
     config_file = "kudicookie.json"
-    main(start_time, config_file)
+    main(config_file)
