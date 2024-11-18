@@ -15,6 +15,8 @@ data部分也需要修改，每天的id和答案不同。
 新增bwcj,自己玩, 我是打包的docker做的api玩的, python调用js传中文的返回参数用不了,不会的可以找我,或者有能力的创个群邀请我.
 这里面不仅仅只有bwcj,有兴趣的可以多看看,好的建议我会采纳
 配置参考我的kudicookie.json, 多用户代理版本,建议和我使用同代理
+docker 构建api地址
+https://github.com/tt619252615/bw-api-interface
 ### 正常秒杀(9.7)：
 现在配置cookie.json 和managerun.run中的启动时间即可。支持模式有MT方法自带get不用手动再次去get请求,mixue,库迪,小部分JD任务以及默认方法None。
 参数说明：
