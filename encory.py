@@ -133,7 +133,6 @@ class QCSRequestStrategy(RequestStrategy):
 
 class BwRequestStrategy(RequestStrategy):
     def __init__(self) -> None:
-        self.encryption_js = self.get_typejs()
         self._current_kw_index = 0
 
     def _get_current_keyword(self, keywords_str: str) -> str:
@@ -217,19 +216,6 @@ class BwRequestStrategy(RequestStrategy):
         # 返回处理后的关键词字符串
         return ",".join(keywords_list)
 
-    def get_typejs(self):
-        try:
-            # 读取JS文件
-            with open("./js/bw.js", "r", encoding="utf-8") as js_file:
-                js_code = js_file.read()
-
-                # 直接编译，不添加额外环境
-                ctx = execjs.compile(js_code)
-                return ctx
-
-        except Exception as e:
-            logger.error(f"Error in get_typejs: {str(e)}")
-            raise
 
 
 class TestIpRequestStrategy(RequestStrategy):
