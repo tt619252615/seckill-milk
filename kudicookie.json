@@ -2,7 +2,7 @@
     "users": [
         {
             "account_name": "user1",
-            "cookie_id": "IVCvJlQkyLBjpl_rNqaAKhPpL05gBZ",
+            "cookie_id": "8ylm1EDx20ARe1uFd-",
             "cookie_name": "qm-user-token",
             "basurl": "https://miniapp.qmai.cn/web/cmk-center/receive/takePartInReceive",
             "max_attempts": 2,
@@ -29,18 +29,17 @@
             },
             "data": {
                 "activityId": "1063505589269471233",
-                "userId": "932939",
-                "key": "HzMiR81om",
-                "iv": "68fa",
-                "version": "13",
-                "keyWords": "霸王茶姬七周年,霸王茶几"
+                "userId": "92102925",
+                "key": "Nyd0dYIOr",
+                "iv": "46149b61b",
+                "version": "27"
             },
             "proxy_flag": true,
             "strategy_flag": "BW"
         },
         {
             "account_name": "user2",
-            "cookie_id": "IVCvJlQkyLBjpl_rNqaAKhPpL05gBZ",
+            "cookie_id": "8ylm1EDx20ARe1uFd-",
             "cookie_name": "qm-user-token",
             "basurl": "https://miniapp.qmai.cn/web/cmk-center/receive/takePartInReceive",
             "max_attempts": 2,
@@ -67,11 +66,10 @@
             },
             "data": {
                 "activityId": "1063505589269471233",
-                "userId": "932939",
-                "key": "HzMiR81om",
-                "iv": "68fa",
-                "version": "13",
-                "keyWords": "霸王茶姬七周年,霸王茶几"
+                "userId": "92102925",
+                "key": "Nyd0dYIOr",
+                "iv": "46149b61b",
+                "version": "27"
             },
             "proxy_flag": true,
             "strategy_flag": "BW"
@@ -85,5 +83,6 @@
             "secretword": ""
         }
     ],
-    "start_time": "11:16:59.590"
+    "bw_keywords": "以东方茶会世界友,连接你我每一天",
+    "start_time": "11:16:59.950"
 }

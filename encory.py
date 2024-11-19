@@ -132,8 +132,9 @@ class QCSRequestStrategy(RequestStrategy):
 
 
 class BwRequestStrategy(RequestStrategy):
-    def __init__(self) -> None:
+    def __init__(self, bw_keywords: str) -> None:
         self._current_kw_index = 0
+        self._key_words = bw_keywords
 
     def _get_current_keyword(self, keywords_str: str) -> str:
         keywords_list = [kw.strip() for kw in keywords_str.split(",")]
@@ -168,7 +169,7 @@ class BwRequestStrategy(RequestStrategy):
     def prepare_request(
         self, current_time: datetime, data: Dict, headers: Dict, base_url: str
     ) -> tuple:
-        kw = self._get_current_keyword(data.get("keyWords"))
+        kw = self._get_current_keyword(self._key_words)
         activity_id = data.get("activityId")
         signature = self._build_signature(activity_id, data.get("userId"), current_time)
 
@@ -181,7 +182,6 @@ class BwRequestStrategy(RequestStrategy):
             "timestamp": current_time,
             "signature": signature,
         }
-
         encrypted_data = self._encrypt_request_data(
             request_data, data.get("key"), data.get("iv")
         )
@@ -197,7 +197,6 @@ class BwRequestStrategy(RequestStrategy):
         process_data = json.dumps(
             process_data, separators=(",", ":"), ensure_ascii=False
         ).encode("utf-8")
-
         return process_url, process_data, headers
 
     def process_response(self, response: requests.Response) -> Dict:
@@ -215,7 +214,6 @@ class BwRequestStrategy(RequestStrategy):
 
         # 返回处理后的关键词字符串
         return ",".join(keywords_list)
-
 
 
 class TestIpRequestStrategy(RequestStrategy):
@@ -360,7 +358,7 @@ class RequestStrategyManager:
         self.strategies = {
             None: DefaultRequestStrategy(),
             "QCS": QCSRequestStrategy(),
-            "BW": BwRequestStrategy(),
+            "BW": BwRequestStrategy({}),
             "IP": TestIpRequestStrategy(),
             "mixue": MixueEncryptionStrategy({}),  # 初始化时传入空字典，后续可以更新
             "KuDi": KuDiEncryptionStrategy({}),

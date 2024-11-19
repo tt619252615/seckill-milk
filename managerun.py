@@ -15,6 +15,7 @@ class SeckillManager:
         self.config = self.load_json_config()
         self.proxies = self.config.get("proxies", "")
         self.mixues = self.config.get("mixues", [])
+        self.bw_keywords = self.config.get("bw_keywords", "")
         self.start_time = datetime.strptime(
             self.config.get("start_time", ""), "%H:%M:%S.%f"
         ).time()
@@ -94,6 +95,8 @@ class SeckillManager:
             strategy_params = None
             if strategy_flag == "mixue" and self.mixues:
                 strategy_params = self.mixues[0]
+            elif strategy_flag == "BW" and self.bw_keywords:
+                strategy_params = self.bw_keywords
             elif strategy_flag and "strategy_params" in user:
                 strategy_params = user.get("strategy_params")
             p = multiprocessing.Process(
