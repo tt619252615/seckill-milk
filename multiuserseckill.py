@@ -8,6 +8,7 @@ import requests
 from loguru import logger
 import random
 import hashlib
+import json
 from encory import RequestStrategyManager
 
 
@@ -84,35 +85,25 @@ class Seckkiller:
         encrypted_str = self.encryption_js.call("get_sig", encrypted_str)
         return encrypted_str, mixue_data
 
+    def get_formatted_proxy(self):
+        """从代理列表中随机选择一个代理并格式化"""
+        if not self.proxy_list:
+            return None
+
+        proxy = random.choice(self.proxy_list)
+        ip, port = proxy.split(":")
+        return {"http": f"http://{ip}:{port}"}
+
     def post_seckill_url(self) -> None:
         while self.attempts < self.max_attempts and not self.stop_flag.is_set():
-            proxy = random.choice(self.proxy_list) if self.proxy_list else None
-            proxies = (
-                f"http://{proxy['ip']}:{proxy['port']}"
-                if proxy and self.proxy_flag
-                else (
-                    {
-                        "http": f"http://{proxy['ip']}:{proxy['port']}",
-                        "https": f"http://{proxy['ip']}:{proxy['port']}",
-                    }
-                    if proxy
-                    else None
-                )
-            )
+            proxies = random.choice(self.proxy_list) if self.proxy_list else None
 
             try:
-                current_time = datetime.now()
+                current_time = str(int(time.time() * 1000))
                 strategy = self.strategy_manager.get_strategy(self.strategy_flag)
                 url, process_data, headers = strategy.prepare_request(
                     current_time, self._data, self._headers, self._base_url
                 )
-                # logger.debug(f"[{self.account_name}] Request: {url} {process_data}")
-                # logger.debug(f"[{self.account_name}] Headers: {headers}")
-                # logger.debug(f"[{self.account_name}] Proxies: {proxy}")
-                # logger.debug(f"[{self.account_name}] Strategy: {strategy}")
-                # logger.debug(
-                #     f"[{self.account_name}] Strategy Params: {self.strategy_flag}"
-                # )
                 response = requests.post(
                     url,
                     headers=headers,
@@ -121,7 +112,7 @@ class Seckkiller:
                     # impersonate="chrome100",
                     timeout=1,
                 )
-                # print(response.text)
+                print(response.text)
                 response_data = strategy.process_response(response)
 
                 message = response_data.get(self.key_messgae, "")
@@ -158,18 +149,20 @@ class Seckkiller:
 
     @staticmethod
     def get_network_time() -> datetime.time:
-        NetworkTimeUrl = (
-            "http://api.m.taobao.com/rest/api3.do?api=mtop.common.getTimestamp"
-        )
+        NetworkTimeUrl = "https://cube.meituan.com/ipromotion/cube/toc/component/base/getServerCurrentTime"
+        # NetworkTimeUrl = (
+        #     "http://api.m.taobao.com/rest/api3.do?api=mtop.common.getTimestamp"
+        # )
         try:
             response = requests.get(
                 NetworkTimeUrl,
+                # verify=False,
                 # impersonate="chrome100",
             )
             res = response.json()
-            now_time = int(res["data"]["t"]) / 1000.0
+            now_time = int(res["data"]) / 1000.0
             return datetime.fromtimestamp(now_time).time()
-        except requests.errors.RequestsError as e:
+        except requests.exceptions.RequestException as e:
             logger.error(f"Request failed: {e}")
             return datetime.now().time()
 
@@ -185,13 +178,32 @@ class Seckkiller:
                 )
                 data = response.json()
                 if data["success"] and data["code"] == 0:
-                    return data["data"]
+                    return Seckkiller.extract_ip_port(data)
                 else:
                     logger.error(f"Failed to get proxy IP9s: {data['msg']}")
                     return []
-            except requests.errors.RequestsError as e:
+            except requests.exceptions.RequestException as e:
                 logger.error(f"Failed to get proxy IPs: {e}")
                 return []
+
+    @staticmethod
+    def extract_ip_port(json_str):
+        """
+        从 JSON 数据中解析出代理 IP 和端口。
+
+        :param json_str: 包含代理信息的 JSON 数据（字典格式）
+        :return: 代理列表，格式为 ["ip:port", ...]
+        """
+        proxies = []
+        if not isinstance(json_str, dict):
+            return proxies
+
+        for item in json_str.get("data", []):
+            ip = item.get("ip")
+            port = item.get("port")
+            if ip and port:
+                proxies.append({"http": f"http://{ip}:{port}"})
+        return proxies
 
     def wait_for_start_time(self) -> None:
         proxy_fetch_interval = 5  # 设置获取代理 IP 的间隔时间（秒）

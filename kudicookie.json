@@ -2,52 +2,87 @@
     "users": [
         {
             "account_name": "user1",
-            "cookie_id": "token_value",
-            "cookie_name": "token",
-            "basurl": "https://ma.cotticoffee.com/cotti-capi/universal/coupon/receiveLaunchRewardH5",
-            "max_attempts": 1,
+            "cookie_id": "8ylm1EDx20ARe1uFd-",
+            "cookie_name": "qm-user-token",
+            "basurl": "https://miniapp.qmai.cn/web/cmk-center/receive/takePartInReceive",
+            "max_attempts": 2,
             "thread_count": 1,
-            "key_value": "成功",
+            "key_value": "ok",
             "key_message": "message",
             "headers": {
-                "host": "ma.cotticoffee.com",
-                "content-length": "152",
-                "version": "v1",
-                "split_timestamp": "0",
-                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 MicroMessenger/7.0.20.1781(0x6700143B) NetType/WIFI MiniProgramEnv/Windows WindowsWechat/WMPF WindowsWechat(0x63090b19)XWEB/11177",
+                "host": "miniapp.qmai.cn",
+                "content-length": "459",
+                "store-id": "49006",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36 MicroMessenger/7.0.20.1781(0x6700143B) NetType/WIFI MiniProgramEnv/Windows WindowsWechat/WMPF WindowsWechat(0x63090b13) XWEB/9129",
                 "content-type": "application/json",
-                "timestamp": "1724033297229",
-                "brandmdcode": "20200000006",
-                "api-version": "v1",
-                "cookie": "",
-                "sign": "B3173AF90252C35F342567DFD8A0D133",
-                "appkey": "",
-                "accept": "*/*",
-                "origin": "https://m.cotticoffee.com",
-                "sec-fetch-site": "same-site",
+                "qm-from": "wechat",
+                "accept": "v=1.0",
+                "qm-trace-store-id": "49006",
+                "xweb_xhr": "1",
+                "qm-from-type": "catering",
+                "sec-fetch-site": "cross-site",
                 "sec-fetch-mode": "cors",
                 "sec-fetch-dest": "empty",
-                "referer": "https://m.cotticoffee.com/",
+                "referer": "https://servicewechat.com/wxafec6f8422cb357b/201/page-frame.html",
                 "accept-encoding": "gzip, deflate, br",
                 "accept-language": "zh-CN,zh;q=0.9"
             },
             "data": {
-                "activityNo": "",
-                "mobile": "",
-                "comeFrom": "4",
-                "openid": null,
-                "blackBox": ""
+                "activityId": "1063505589269471233",
+                "userId": "92102925",
+                "key": "Nyd0dYIOr",
+                "iv": "46149b61b",
+                "version": "27"
             },
-            "proxy_flag": false,
-            "strategy_flag": "KuDi"
+            "proxy_flag": true,
+            "strategy_flag": "BW"
+        },
+        {
+            "account_name": "user2",
+            "cookie_id": "8ylm1EDx20ARe1uFd-",
+            "cookie_name": "qm-user-token",
+            "basurl": "https://miniapp.qmai.cn/web/cmk-center/receive/takePartInReceive",
+            "max_attempts": 2,
+            "thread_count": 1,
+            "key_value": "ok",
+            "key_message": "message",
+            "headers": {
+                "host": "miniapp.qmai.cn",
+                "content-length": "459",
+                "store-id": "49006",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36 MicroMessenger/7.0.20.1781(0x6700143B) NetType/WIFI MiniProgramEnv/Windows WindowsWechat/WMPF WindowsWechat(0x63090b13) XWEB/9129",
+                "content-type": "application/json",
+                "qm-from": "wechat",
+                "accept": "v=1.0",
+                "qm-trace-store-id": "49006",
+                "xweb_xhr": "1",
+                "qm-from-type": "catering",
+                "sec-fetch-site": "cross-site",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-dest": "empty",
+                "referer": "https://servicewechat.com/wxafec6f8422cb357b/201/page-frame.html",
+                "accept-encoding": "gzip, deflate, br",
+                "accept-language": "zh-CN,zh;q=0.9"
+            },
+            "data": {
+                "activityId": "1063505589269471233",
+                "userId": "92102925",
+                "key": "Nyd0dYIOr",
+                "iv": "46149b61b",
+                "version": "27"
+            },
+            "proxy_flag": true,
+            "strategy_flag": "BW"
         }
     ],
-    "proxies": "",
+    "proxies": "http://need1.dmdaili.com:7771/dmgetip.asp?",
     "mixues": [
         {
             "marketingId": "",
             "round": "",
             "secretword": ""
         }
-    ]
+    ],
+    "bw_keywords": "以东方茶会世界友,连接你我每一天",
+    "start_time": "11:16:59.950"
 }

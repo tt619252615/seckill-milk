@@ -13,6 +13,12 @@ from datetime import datetime
 from typing import Dict, Any, Tuple, Optional
 from loguru import logger
 from urllib.parse import urlparse, parse_qs
+import hashlib
+import json
+from base64 import b64encode
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+import urllib.parse
 
 
 class Encryptor:
@@ -78,7 +84,7 @@ class Encryptor:
         description: kudi encryption method.
         """
         kudi_params = f"path/cotti-capi/universal/coupon/receiveLaunchRewardH5timestamp{current_time}versionv1Bu0Zsh4B0SnKBRfds0XWCSn51WJfn5yN"
-        sign = Encryptor.foundation_md5(kudi_params)
+        sign = Encryptor.foundation_md5(kudi_params).upper()
         return sign
 
     @staticmethod
@@ -109,6 +115,114 @@ class DefaultRequestStrategy(RequestStrategy):
     ) -> tuple:
         process_data = json.dumps(data, separators=(",", ":"), ensure_ascii=False)
         return base_url, process_data, headers
+
+    def process_response(self, response: requests.Response) -> Dict:
+        return response.json()
+
+
+class QCSRequestStrategy(RequestStrategy):
+    def prepare_request(
+        self, current_time: datetime, data: Dict, headers: Dict, base_url: str
+    ) -> tuple:
+        process_data = json.dumps(data)
+        return base_url, data, headers
+
+    def process_response(self, response: requests.Response) -> Dict:
+        return response.json()
+
+
+class BwRequestStrategy(RequestStrategy):
+    def __init__(self, bw_keywords: str) -> None:
+        self._current_kw_index = 0
+        self._key_words = bw_keywords
+
+    def _get_current_keyword(self, keywords_str: str) -> str:
+        keywords_list = [kw.strip() for kw in keywords_str.split(",")]
+        if self._current_kw_index >= len(keywords_list):
+            self._current_kw_index = 0
+        kw = keywords_list[self._current_kw_index]
+        self._current_kw_index += 1
+        return kw
+
+    def _build_signature(self, activity_id: str, user_id: str, timestamp: str) -> str:
+        key = activity_id[::-1]
+        signature_str = f"activityId={activity_id}&sellerId=49006&timestamp={timestamp}&userId={user_id}&key={key}"
+        return Encryptor.foundation_md5(signature_str).upper()
+
+    def _encrypt_request_data(self, request_data: Dict, key: str, iv: str) -> str:
+        json_data = json.dumps(request_data, ensure_ascii=False, separators=(",", ":"))
+        cipher = AES.new(key.encode(), AES.MODE_CBC, iv.encode())
+        padded_data = pad(json_data.encode("utf-8"), AES.block_size)
+        encrypted_data = cipher.encrypt(padded_data)
+        return b64encode(encrypted_data).decode("utf-8")
+
+    def _get_encryption_params(self, process_data: Dict) -> str:
+        url = "http://192.168.31.186:3001/api/encrypt"
+        payload = json.dumps(process_data)
+        headers = {"Content-Type": "application/json"}
+        response = requests.post(url, headers=headers, data=payload)
+        params = response.json().get("data", {}).get("encrypted")
+        if not params:
+            raise ValueError("Encryption failed - no result returned")
+        return params
+
+    def prepare_request(
+        self, current_time: datetime, data: Dict, headers: Dict, base_url: str
+    ) -> tuple:
+        kw = self._get_current_keyword(self._key_words)
+        activity_id = data.get("activityId")
+        signature = self._build_signature(activity_id, data.get("userId"), current_time)
+
+        request_data = {
+            "activityId": activity_id,
+            "keyWords": kw,
+            "qzGtd": "",
+            "gdtVid": "",
+            "appid": "wxafec6f8422cb357b",
+            "timestamp": current_time,
+            "signature": signature,
+        }
+        encrypted_data = self._encrypt_request_data(
+            request_data, data.get("key"), data.get("iv")
+        )
+
+        process_data = {
+            **request_data,
+            "data": encrypted_data,
+            "version": data.get("version"),
+        }
+        params = self._get_encryption_params(process_data)
+
+        process_url = f"{base_url}?type__1475={params}"
+        process_data = json.dumps(
+            process_data, separators=(",", ":"), ensure_ascii=False
+        ).encode("utf-8")
+        return process_url, process_data, headers
+
+    def process_response(self, response: requests.Response) -> Dict:
+        return response.json()
+
+    def process_keywords(self, keywords):
+        # 如果输入是字符串，先按逗号分割成列表
+        if isinstance(keywords, str):
+            keywords_list = [kw.strip() for kw in keywords.split(",")]
+        # 如果输入是列表，直接使用
+        elif isinstance(keywords, list):
+            keywords_list = keywords
+        else:
+            raise ValueError("关键词格式不正确")
+
+        # 返回处理后的关键词字符串
+        return ",".join(keywords_list)
+
+
+class TestIpRequestStrategy(RequestStrategy):
+    def prepare_request(
+        self, current_time: datetime, data: Dict, headers: Dict, base_url: str
+    ) -> tuple:
+        process_data = json.dumps(data)
+        base_url = "http://httpbin.org/ip"
+        return base_url, data, headers
 
     def process_response(self, response: requests.Response) -> Dict:
         return response.json()
@@ -169,7 +283,7 @@ class KuDiEncryptionStrategy(RequestStrategy):
         self, current_time: datetime, data: Dict, headers: Dict, base_url: str
     ) -> Tuple[str, Dict, Dict]:
         timestamp = int(current_time.timestamp() * 1000)
-        encrypted_sign = self._encrypt_data(data, timestamp)
+        encrypted_sign = Encryptor.encrypt_kudi(timestamp)
         headers["sign"] = encrypted_sign
         headers["timestamp"] = str(timestamp)
         data = json.dumps(data, separators=(",", ":"), ensure_ascii=False)
@@ -178,11 +292,7 @@ class KuDiEncryptionStrategy(RequestStrategy):
 
     def process_response(self, response: requests.Response) -> Dict:
         res = response.json()
-        messge = res.get("message", "")
-        if messge == "success":
-            return res.get("data", {})
-        else:
-            return None
+        return res["data"]
 
 
 class MTEncryptionStrategy(RequestStrategy):
@@ -233,7 +343,7 @@ class MTEncryptionStrategy(RequestStrategy):
             "Sec-Fetch-Dest": "empty",
             "Cookie": cookie,
         }
-        logger.info(f"URL1: {headers}")
+        # logger.info(f"URL1: {headers}")
         response = requests.get(url=URL1, headers=headers_temp)
         # self.flage = response.json().get("msg", {})
         # print(self.flage)
@@ -247,6 +357,9 @@ class RequestStrategyManager:
     def __init__(self):
         self.strategies = {
             None: DefaultRequestStrategy(),
+            "QCS": QCSRequestStrategy(),
+            "BW": BwRequestStrategy({}),
+            "IP": TestIpRequestStrategy(),
             "mixue": MixueEncryptionStrategy({}),  # 初始化时传入空字典，后续可以更新
             "KuDi": KuDiEncryptionStrategy({}),
             "MT": MTEncryptionStrategy({}),
