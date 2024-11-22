@@ -18,6 +18,7 @@ data部分也需要修改，每天的id和答案不同。
 docker 构建api地址
 https://github.com/tt619252615/bw-api-interface
 _get_encryption_params这个方法处修改url地址在encory文件中
+感谢论坛大佬浅黑大佬开源帮助,现在已有滑块
 ### 正常秒杀(9.7)：
 现在配置cookie.json 和managerun.run中的启动时间即可。支持模式有MT方法自带get不用手动再次去get请求,mixue,库迪,小部分JD任务以及默认方法None。
 参数说明：
