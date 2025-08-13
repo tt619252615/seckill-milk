@@ -1,0 +1,8 @@
+{
+    "app_id": "your app id",
+    "app_secret": "your app secret",
+    "template_id": "your template id",
+    "users": {
+        "admin": "user openid"
+    }
+}

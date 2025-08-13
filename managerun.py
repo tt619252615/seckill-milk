@@ -1,136 +1,115 @@
 from multiuserseckill import Seckkiller
-from datetime import datetime, date
-from typing import Dict, Optional, List
-from encory import *
+from datetime import datetime, date, timedelta
+from typing import Dict
 import time
 import json
 import multiprocessing
 from loguru import logger
-
+from config import SeckillConfig, UserConfig, SeckkillerConfig
 
 class SeckillManager:
-    def __init__(self, config_file: str):
-        self.config_file = config_file
-        # self.start_time = datetime.strptime(start_time, "%H:%M:%S.%f").time()
-        self.config = self.load_json_config()
-        self.proxies = self.config.get("proxies", "")
-        self.mixues = self.config.get("mixues", [])
-        self.bw_keywords = self.config.get("bw_keywords", "")
-        self.start_time = datetime.strptime(
-            self.config.get("start_time", ""), "%H:%M:%S.%f"
-        ).time()
+    def __init__(self, config: dict = None, config_file: str = None):
+        if config:
+            self.config = SeckillConfig.from_dict(config)
+        elif config_file:
+            self.config_file = config_file
+            with open(self.config_file, "r", encoding="utf-8") as f:
+                logger.info(f"Loading config from {self.config_file}...")
+                config_dict = json.load(f)
+                self.config = SeckillConfig.from_dict(config_dict)
+        else:
+            raise ValueError("必须提供 config 或 config_file 参数")
 
-    def load_json_config(self) -> Dict:
-        with open(self.config_file, "r", encoding="utf-8") as f:
-            logger.info(f"Loading config from {self.config_file}...")
-            return json.load(f)
+    def sync_time(self) -> float:
+        """同步时间，返回时间差"""
+        network_time = Seckkiller.get_network_time()
+        local_time = datetime.now().time()
+        time_diff = (
+            datetime.combine(date.today(), network_time) - 
+            datetime.combine(date.today(), local_time)
+        ).total_seconds()
+        
+        logger.info(f"网络时间与本地时间差: {time_diff:.3f} 秒")
+        return time_diff
 
-    def worker(
-        self,
-        cookie_id: str,
-        cookie_name: str,
-        account_name: str,
-        headers: Dict,
-        data: Dict,
-        basurl: str,
-        max_attempts: int,
-        thread_count: int,
-        key_value: str,
-        key_messgae: str,
-        strategy_flag: Optional[str],
-        strategy_params: Optional[Dict] = None,
-        proxy_flag: bool = False,
-    ) -> None:
-        logger.info(f"Starting seckill for {account_name}...")
-        seckkiller = Seckkiller(
-            cookie_id,
-            cookie_name,
-            headers,
-            data,
-            basurl,
-            self.proxies,
-            self.start_time,
-            account_name,
-            max_attempts=max_attempts,
-            thread_count=thread_count,
-            key_value=key_value,
-            key_messgae=key_messgae,
-            strategy_flag=strategy_flag,
-            strategy_params=strategy_params,
-            proxy_flag=proxy_flag,
-        )
+    def worker(self, user: UserConfig, time_diff: float) -> None:
+        logger.info(f"Starting seckill for {user.account_name}...")
+        
+        strategy_params = None
+        if user.strategy_flag == "mixue" and self.config.mixues:
+            strategy_params = self.config.mixues[0]
+        elif user.strategy_flag == "BW" and self.config.bw_keywords:
+            strategy_params = self.config.bw_keywords
+        elif user.strategy_flag and user.strategy_params:
+            strategy_params = user.strategy_params
+        
+        user.strategy_params = strategy_params
+        seckkiller_config = SeckkillerConfig.from_user_config(user, self.config)
+        seckkiller_config.time_diff = time_diff  # 添加时间差到配置中
+        seckkiller = Seckkiller(config=seckkiller_config)
         seckkiller.run()
 
-    def print_remaining_time(self) -> None:
+    def print_remaining_time(self, time_diff: float) -> None:
         while True:
-            current_time = Seckkiller.get_network_time()
+            # 使用本地时间加上时间差来计算当前实际时间
+            current_local = datetime.now().time()
+            adjusted_time = (
+                datetime.combine(date.today(), current_local) + 
+                timedelta(seconds=time_diff)
+            ).time()
+            
             remaining_seconds = (
-                datetime.combine(date.today(), self.start_time)
-                - datetime.combine(date.today(), current_time)
+                datetime.combine(date.today(), self.config.start_time)
+                - datetime.combine(date.today(), adjusted_time)
             ).total_seconds()
+            
             if remaining_seconds <= 0:
                 logger.info("Time is up! All processes should start seckill...")
                 break
+                
             logger.info(f"Remaining time: {remaining_seconds:.2f} seconds")
             time.sleep(0.5)
 
     def run(self) -> None:
-        timer_process = multiprocessing.Process(target=self.print_remaining_time)
-        timer_process.start()
-        processes = []
-        for user in self.config.get("users", []):
-            account_name = user.get("account_name")
-            cookie_id = user.get("cookie_id")
-            cookie_name = user.get("cookie_name")
-            basurl = user.get("basurl")
-            max_attempts = user.get("max_attempts", 10)
-            thread_count = user.get("thread_count", 5)
-            key_value = user.get("key_value", "")
-            key_messgae = user.get("key_message", "")
-            headers = user.get("headers", {})
-            data = user.get("data", {})
-            proxy_flag = user.get("proxy_flag", False)
-            strategy_flag = user.get("strategy_flag")
+        # 在主进程中同步时间
+        time_diff = self.sync_time()
 
-            strategy_params = None
-            if strategy_flag == "mixue" and self.mixues:
-                strategy_params = self.mixues[0]
-            elif strategy_flag == "BW" and self.bw_keywords:
-                strategy_params = self.bw_keywords
-            elif strategy_flag and "strategy_params" in user:
-                strategy_params = user.get("strategy_params")
+        timer_process = multiprocessing.Process(
+            target=self.print_remaining_time,
+            args=(time_diff,)
+        )
+        timer_process.start()
+        
+        processes = []
+        for user in self.config.users:
             p = multiprocessing.Process(
                 target=self.worker,
-                args=(
-                    cookie_id,
-                    cookie_name,
-                    account_name,
-                    headers,
-                    data,
-                    basurl,
-                    max_attempts,
-                    thread_count,
-                    key_value,
-                    key_messgae,
-                    strategy_flag,
-                    strategy_params,
-                    proxy_flag,
-                ),
+                args=(user, time_diff)
             )
             p.start()
             processes.append(p)
+
         for p in processes:
             p.join()
         timer_process.terminate()
         timer_process.join()
 
+    def stop_all(self):
+        """停止所有进程"""
+        # 实现停止逻辑
+        pass
 
-def main(config_file: str) -> None:
-    manager = SeckillManager(config_file)
+    async def run_async(self):
+        """异步运行方法"""
+        self.run()
+
+
+def main(config_file: str) -> None:   
+    manager = SeckillManager(config_file=config_file)
     manager.run()
 
 
 if __name__ == "__main__":
     # start_time = "10:59:59.950"
-    config_file = "kudicookie.json"
+    config_file = "./kudicookie.json"
     main(config_file)

@@ -272,7 +272,11 @@ class JDRequestStrategy(RequestStrategy):
         return base_url, data, headers
 
     def process_response(self, response: requests.Response) -> Dict:
-        return response.json()
+        res = response.json()
+        if "data" in res:
+            return res["data"]
+        else:
+            return res
 
 
 class KuDiEncryptionStrategy(RequestStrategy):
@@ -303,19 +307,11 @@ class MTEncryptionStrategy(RequestStrategy):
     def prepare_request(
         self, current_time: datetime, data: Dict, headers: Dict, base_url: str
     ) -> Tuple[str, Dict, Dict]:
-        # info = MTEncryptionStrategy.get_coupon_info(headers, base_url)
-        # print(info)
-        if self.flage != "":
-            data = json.dumps(data, separators=(",", ":"), ensure_ascii=False)
-            return base_url, data, headers
-        else:
-            info = MTEncryptionStrategy.get_coupon_info(headers, base_url)
-            data = json.dumps(data, separators=(",", ":"), ensure_ascii=False)
-            self.flage = info.get("msg", {})
-            return base_url, data, headers
+        data = json.dumps(data, separators=(",", ":"), ensure_ascii=False)
+        return base_url, data, headers
 
     def process_response(self, response: requests.Response) -> Dict:
-        res = response.json()
+        res = response.json()["data"]["coupon"]
         return res
 
     def _get_couponId(self, basurl):

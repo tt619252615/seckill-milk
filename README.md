@@ -1,3 +1,32 @@
+# 多用户秒杀系统
+
+一个支持多用户、多策略的通用秒杀系统，支持定时任务和微信通知功能。
+
+## 功能特点
+
+- 支持多用户并发秒杀
+- 多种秒杀策略（MT、Mixue、库迪、JD等）
+- 代理IP支持
+- 定时任务调度
+- 微信实时通知
+### 2. 配置文件说明
+
+#### 2.1 调度配置 (schedule.json)
+
+#### 2.2 通知配置 (notify_config.json)
+
+#### 2.3 用户配置 (configs/path/to/your/config.json)
+# 3. 运行方式
+
+## 3.1 调度器模式
+### 监视模式（持续运行）
+python scheduler.py --mode watch
+### 运行指定小时的任务
+python scheduler.py --mode hour --hour 11
+### 运行当前小时任务
+python scheduler.py --mode --mode now
+
+
 # seckill-milk 小程序秒杀
 小程序秒杀
 seckill milk

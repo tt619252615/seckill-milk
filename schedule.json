@@ -1,0 +1,40 @@
+{
+    "11": [
+        {
+            "start_time": "11:16:59.950",
+            "config_file": "./configs/kudicookie_1116.json",
+            "enabled": true,
+            "description": "11点16分蜜雪冰城秒杀任务"
+        },
+        {
+            "start_time": "11:59:59.950",
+            "config_file": "./configs/kudicookie_1159.json",
+            "enabled": false,
+            "description": "11点59分库迪咖啡秒杀任务"
+        }
+    ],
+    "14": [
+        {
+            "start_time": "14:59:59.950",
+            "config_file": "./configs/kudicookie_1459.json",
+            "enabled": true,
+            "description": "14点59分下午场秒杀任务"
+        }
+    ],
+    "16": [
+        {
+            "start_time": "16:00:00.000",
+            "config_file": "./configs/kudicookie_1600.json",
+            "enabled": true,
+            "description": "16点整点秒杀任务"
+        }
+    ],
+    "19": [
+        {
+            "start_time": "19:16:59.950",
+            "config_file": "./configs/testkudi.json",
+            "enabled": true,
+            "description": "晚上8点16分秒杀任务"
+        }
+    ]
+}
